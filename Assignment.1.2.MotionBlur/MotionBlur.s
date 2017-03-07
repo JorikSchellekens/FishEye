@@ -14,11 +14,12 @@ getPixel			; address, RGBval = getPixel(row, col)
 	; Returns:
 	; R0 = RGBvalue
 	STMFD SP!, {LR}
+
 	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
 	LDR R0, [R4, R0, LSL #2]; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
+	
 	LDMFD SP!, {LR}
 	BX LR
-
 	
 rowColToIndex
 	; converts row and colum to index
@@ -40,7 +41,7 @@ putPixel
 	STMFD SP!, {LR}
 	
 	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
-	STR R2, [R4, R0, LSL #2]; Memory.word(pictureAddress + addressOffset * 4)
+	STR R2, [R4, R0, LSL #2]; Memory.word(pictureAddress + addressOffset * 4) = RGB
 	
 	LDMFD SP!, {LR}
 	BX LR
@@ -103,13 +104,13 @@ getValueFromMask
 	; R1 = mask
 	; Return Values
 	; R1 = mask
-	; R2 = colorValue
-	AND R2, R0, R1		; value = RGB & mask
+	; R0 = colorValue
+	AND R0, R0, R1		; value = RGB & mask
 	PUSH {R1}
 getMaskWhile	
 	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
 	BCS endGetMaskWhile	; {
-	LSR R2, R2, #4		;	value >> 4
+	LSR R0, R0, #4		;	value >> 4
 	B getMaskWhile		; }
 endGetMaskWhile			
 	POP {R1}
@@ -136,8 +137,19 @@ endSetMaskWhile			;
 	BX LR
 
 
+blur5
+	; Takes in five RGB values and computes their blur value.
+	; Parameters:
+	;	Stack > RGB value count    | 0 < count
+	;	Stack > count RGB values
+
+	LDMFD SP!, {R3}
+	STMFD SP!, {R0,}
 
 
+averageColor
+	CMP
+	BX LR
 
 
 
@@ -150,6 +162,9 @@ start
 	BL	getPicWidth	; load the width of the image (columns) in R6
 	MOV	R6, R0
 
+	MOV R7, R5		; HEIGHT  (Constants) // This officially breaks the statelessnes.
+	MOV R8, R6		; WIDTH
+	
 	; your code goes here
 
 	BL	putPic		; re-display the updated image
