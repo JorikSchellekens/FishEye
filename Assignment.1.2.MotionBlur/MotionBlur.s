@@ -1,4 +1,5 @@
 	AREA	MotionBlur, CODE, READONLY
+	PRESERVE8
 	IMPORT	main
 	IMPORT	getPicAddr
 	IMPORT	putPic
@@ -149,54 +150,56 @@ averageN
 	LDR R4, =6
 	MOV R3, R0
 	ADD R5, R4, R3
-	LDR R6, #0
-	LDR R2, #0
+	LDR R6, =0
+	LDR R2, =0
 	LDR R1, =0x00FF0000
 	BL averageColor
 	LDR R1, =0x0000FF00
 	BL averageColor
 	LDR R1, =0x000000FF
 	BL averageColor
+	MOV R0, R6
 	LDMFD SP!, {R1 - R6, LR}
-	STMFD SP!, {R3}
+	STMFD SP!, {R1}
 	BX LR
 
 averageColor
-	CMP R5, R4
 forN
+	CMP R5, R4
 	BEQ endForN
-	LDR R0, [SP!, R5, LSL #4]
-	PUSH, {LR}
+	LDR R0, [SP, R5, LSL #2]
+	PUSH {LR}
 	BL getValueFromMask
-	POP, {LR}
+	POP {LR}
 	ADD R2, R2, R0
 	SUBS R5, R5, #1
 	B forN
 endForN
-	PUSH, {R1}
+	PUSH {R1}
 	MOV R0, R2
 	MOV R1, R3
-	PUSH, {LR}
+	PUSH {LR}
 	BL divide
-	POP, {LR}
+	POP {LR}
 	CMP R1, #0
 	LDRMI R1, =0
 	CMP R1, #255
-	LDRGT R1, #255
+	LDRGT R1, =255
 	MOV R0, R6
 	MOV R2, R1
-	POP, {R1}
-	PUSH, {LR}
+	POP {R1}
+	PUSH {LR}
 	BL setValueFromMask
-	POP, {LR}
+	POP {LR}
 	MOV R6, R0
-	LDR R2, #0
+	LDR R2, =0
 	ADD R5, R4, R3
-	MOV
 	BX LR
 
-
+; taken from my group work in the labs
 divide											;division loop, leaves Quotient in R1 and Remainder in R0
+	STMFD SP!, {R2, R3, LR}
+	
 	LDR R2, =0	; Q								;set temp quotient to 0
 	LDR R3, =1	; T								;set placeholder to 1
 
@@ -217,13 +220,14 @@ THEREVENGEOFTHEALIGNLOOP						;{
 	LSR R1, #1 									;divide divisor by 2
 	LSRS R3, #1									;divide r3 by 2 and set flag
 	BCS THEENDOFTHEREVENGEOFTHEALIGNLOOP		;while carry flag not set{ 
-	CMP R0, R1									;if(dividend>=divisor)
-	SUBHS R0, R0, R1							;subtract dividend from divisor
-	ADDHS R2, R2, R3							;add placeholder to temp quotient
-	B THEREVENGEOFTHEALIGNLOOP					;}
-THEENDOFTHEREVENGEOFTHEALIGNLOOP				;}
-	MOV R1, R2								
-	BX R14										
+	CMP R0, R1									;	if(dividend>=divisor):
+	SUBHS R0, R0, R1							;		subtract dividend from divisor
+	ADDHS R2, R2, R3							;		add placeholder to temp quotient
+	B THEREVENGEOFTHEALIGNLOOP					;	
+THEENDOFTHEREVENGEOFTHEALIGNLOOP				; }
+	MOV R1, R2
+	LDMFD SP!, {R2, R3, LR}								
+	BX LR							
 	
 
 start
@@ -238,6 +242,16 @@ start
 	MOV R7, R5		; HEIGHT  (Constants) // This officially breaks the statelessnes.
 	MOV R8, R6		; WIDTH
 	
+	LDR R0, =0x0055AA05
+	LDR R1, =0
+	PUSH {R0}
+	PUSH {R1}
+	PUSH {R1}
+	PUSH {R1}
+	PUSH {R1}
+	LDR R1, =5
+	PUSH {R1}
+	BL averageN
 	; your code goes here
 
 	BL	putPic		; re-display the updated image
