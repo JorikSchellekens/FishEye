@@ -169,6 +169,7 @@ jLoop
 	MOV R2, R8
 	MOV R3, R9
 	BL adjustPixel
+	MOV R2, R0
 	MOV R0, R5
 	MOV R1, R7
 	BL putPixel

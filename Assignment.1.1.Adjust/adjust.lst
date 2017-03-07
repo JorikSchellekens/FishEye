@@ -14,8 +14,8 @@ ARM Macro Assembler    Page 1
     8 00000000                 EXPORT           start
     9 00000000         
    10 00000000         getPixelError
-   11 00000000 E59F0140        LDR              R0, =-1
-   12 00000004 E59F113C        LDR              R1, =-1
+   11 00000000 E59F0144        LDR              R0, =-1
+   12 00000004 E59F1140        LDR              R1, =-1
    13 00000008 EA000002        B                getPixelFinally
    14 0000000C         getPixel                             ; address, RGBval =
                                                              getPixel(row, col)
@@ -229,41 +229,42 @@ ARM Macro Assembler    Page 4
   159 00000100         iLoop
   160 00000100 E1A07006        MOV              R7, R6
   161 00000104 E2555001        SUBS             R5, R5, #1
-  162 00000108 4A00000C        BMI              endiLoop
+  162 00000108 4A00000D        BMI              endiLoop
   163 0000010C         jLoop
   164 0000010C E2577001        SUBS             R7, R7, #1
-  165 00000110 4A000009        BMI              endjLoop
+  165 00000110 4A00000A        BMI              endjLoop
   166 00000114 E1A00005        MOV              R0, R5
   167 00000118 E1A01007        MOV              R1, R7
   168 0000011C EBFFFFBA        BL               getPixel
   169 00000120 E1A02008        MOV              R2, R8
   170 00000124 E1A03009        MOV              R3, R9
   171 00000128 EBFFFFC4        BL               adjustPixel
-  172 0000012C E1A00005        MOV              R0, R5
-  173 00000130 E1A01007        MOV              R1, R7
-  174 00000134 EBFFFFBC        BL               putPixel
-  175 00000138 EAFFFFF3        B                jLoop
-  176 0000013C         endjLoop
-  177 0000013C EAFFFFEF        B                iLoop
-  178 00000140         endiLoop
-  179 00000140 EBFFFFFE        BL               putPic
-  180 00000144         ; re-display the updated image
-  181 00000144         
-  182 00000144 EAFFFFFE 
+  172 0000012C E1A02000        MOV              R2, R0
+  173 00000130 E1A00005        MOV              R0, R5
+  174 00000134 E1A01007        MOV              R1, R7
+  175 00000138 EBFFFFBB        BL               putPixel
+  176 0000013C EAFFFFF2        B                jLoop
+  177 00000140         endjLoop
+  178 00000140 EAFFFFEE        B                iLoop
+  179 00000144         endiLoop
+  180 00000144 EBFFFFFE        BL               putPic
+  181 00000148         ; re-display the updated image
+  182 00000148         
+  183 00000148 EAFFFFFE 
                        stop    B                stop
-  183 00000148         
-  184 00000148         
-  185 00000148                 END
+  184 0000014C         
+  185 0000014C         
+  186 0000014C                 END
               FFFFFFFF 
 Command Line: --debug --xref --apcs=interwork --depend=.\adjust.d -o.\adjust.o 
 -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC:\Keil\ARM\Inc\Philips --
-predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="NO_CLOCK
 
 
 
 ARM Macro Assembler    Page 5 
 
 
+predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="NO_CLOCK
 _SETUP SETA 1" --predefine="NO_EMC_SETUP SETA 1" --predefine="RAM_INTVEC SETA 1
 " --predefine="RAM_MODE SETA 1" --predefine="REMAP SETA 1" --list=.\adjust.lst 
 Adjust.s
@@ -315,19 +316,19 @@ Symbol: endSetMaskWhile
    Uses
       At line 141 in file Adjust.s
 Comment: endSetMaskWhile used once
-endiLoop 00000140
+endiLoop 00000144
 
 Symbol: endiLoop
    Definitions
-      At line 178 in file Adjust.s
+      At line 179 in file Adjust.s
    Uses
       At line 162 in file Adjust.s
 Comment: endiLoop used once
-endjLoop 0000013C
+endjLoop 00000140
 
 Symbol: endjLoop
    Definitions
-      At line 176 in file Adjust.s
+      At line 177 in file Adjust.s
    Uses
       At line 165 in file Adjust.s
 Comment: endjLoop used once
@@ -385,7 +386,7 @@ Symbol: iLoop
    Definitions
       At line 159 in file Adjust.s
    Uses
-      At line 177 in file Adjust.s
+      At line 178 in file Adjust.s
 Comment: iLoop used once
 jLoop 0000010C
 
@@ -393,7 +394,7 @@ Symbol: jLoop
    Definitions
       At line 163 in file Adjust.s
    Uses
-      At line 175 in file Adjust.s
+      At line 176 in file Adjust.s
 Comment: jLoop used once
 putPixel 0000002C
 
@@ -407,7 +408,7 @@ Symbol: putPixel
    Definitions
       At line 44 in file Adjust.s
    Uses
-      At line 174 in file Adjust.s
+      At line 175 in file Adjust.s
 Comment: putPixel used once
 rowColToIndex 00000020
 
@@ -444,13 +445,13 @@ Symbol: start
    Uses
       At line 8 in file Adjust.s
 Comment: start used once
-stop 00000144
+stop 00000148
 
 Symbol: stop
    Definitions
-      At line 182 in file Adjust.s
+      At line 183 in file Adjust.s
    Uses
-      At line 182 in file Adjust.s
+      At line 183 in file Adjust.s
 Comment: stop used once
 20 symbols
 
@@ -497,7 +498,7 @@ Symbol: putPic
    Definitions
       At line 5 in file Adjust.s
    Uses
-      At line 179 in file Adjust.s
+      At line 180 in file Adjust.s
 Comment: putPic used once
 5 symbols
 364 symbols in table
