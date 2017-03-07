@@ -240,19 +240,39 @@ start
 	MOV	R6, R0
 
 	MOV R7, R5		; HEIGHT  (Constants) // This officially breaks the statelessnes.
-	MOV R8, R6		; WIDTH
+	SUB R7, R7, #1
+	LDR R8, =0 		; WIDTH
+	LDR R11, =5				; DIAMETER
+	LSR R12, R11, #1		; RADIUS
 	
-	LDR R0, =0x0055AA05
-	LDR R1, =0
+bottomRow
+	
+	CMP R8, R6
+	BEQ endBottomRow
+	PUSH {R7, R8}		; save startLocation
+						; R7, R8 is center pixel
+initializeDiagonal
+	CMP R12, #0
+setUpLoop
+	BMI endInitDia
+	MOV R0, R7
+	MOV R1, R8
+	BL getPixel
 	PUSH {R0}
-	PUSH {R1}
-	PUSH {R1}
-	PUSH {R1}
-	PUSH {R1}
-	LDR R1, =5
-	PUSH {R1}
-	BL averageN
-	; your code goes here
+	SUBS R7, R7, #1
+	BMI endInitDia
+	SUBS R8, R8, #1
+	BMI endInitDia
+	SUBS R12, R12, #1
+	B setUpLoop
+	
+endInitDia
+	
+	POP {R7, R8}
+	ADD R8, R8, #1
+	B bottomRow
+endBottomwRow
+
 
 	BL	putPic		; re-display the updated image
 

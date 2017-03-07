@@ -346,14 +346,14 @@ ARM Macro Assembler    Page 6
                                                             lessnes.
   243 00000204 E1A08006        MOV              R8, R6      ; WIDTH
   244 00000208         
-  245 00000208 E59F002C        LDR              R0, =0x0055AA05
+  245 00000208 E59F002C        LDR              R0, =0x00448800
   246 0000020C E3A01000        LDR              R1, =0
   247 00000210 E52D0004        PUSH             {R0}
   248 00000214 E52D1004        PUSH             {R1}
   249 00000218 E52D1004        PUSH             {R1}
-  250 0000021C E52D1004        PUSH             {R1}
+  250 0000021C E3A01022        LDR              R1, =0x00000022
   251 00000220 E52D1004        PUSH             {R1}
-  252 00000224 E3A01005        LDR              R1, =5
+  252 00000224 E3A01004        LDR              R1, =4
   253 00000228 E52D1004        PUSH             {R1}
   254 0000022C EBFFFFA9        BL               averageN
   255 00000230         ; your code goes here
@@ -367,7 +367,7 @@ ARM Macro Assembler    Page 6
   261 00000238         
   262 00000238                 END
               FFFFFFFF 
-              0055AA05 
+              00448800 
 Command Line: --debug --xref --apcs=interwork --depend=.\motionblur.d -o.\motio
 nblur.o -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC:\Keil\ARM\Inc\Ph
 ilips --predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="
