@@ -136,22 +136,95 @@ endSetMaskWhile			;
 	ADD R0, R0, R2		; RGB = RGB + value
 	BX LR
 
-
-blur5
+averageN
 	; Takes in five RGB values and computes their blur value.
 	; Parameters:
 	;	Stack > RGB value count    | 0 < count
 	;	Stack > count RGB values
+	; Returns:
+	;	R0 = average
 
-	LDMFD SP!, {R3}
-	STMFD SP!, {R0,}
-
+	LDMFD SP!, {R0}
+	STMFD SP!, {R1 - R6, LR}
+	LDR R4, =6
+	MOV R3, R0
+	ADD R5, R4, R3
+	LDR R6, #0
+	LDR R2, #0
+	LDR R1, =0x00FF0000
+	BL averageColor
+	LDR R1, =0x0000FF00
+	BL averageColor
+	LDR R1, =0x000000FF
+	BL averageColor
+	LDMFD SP!, {R1 - R6, LR}
+	STMFD SP!, {R3}
+	BX LR
 
 averageColor
-	CMP
+	CMP R5, R4
+forN
+	BEQ endForN
+	LDR R0, [SP!, R5, LSL #4]
+	PUSH, {LR}
+	BL getValueFromMask
+	POP, {LR}
+	ADD R2, R2, R0
+	SUBS R5, R5, #1
+	B forN
+endForN
+	PUSH, {R1}
+	MOV R0, R2
+	MOV R1, R3
+	PUSH, {LR}
+	BL divide
+	POP, {LR}
+	CMP R1, #0
+	LDRMI R1, =0
+	CMP R1, #255
+	LDRGT R1, #255
+	MOV R0, R6
+	MOV R2, R1
+	POP, {R1}
+	PUSH, {LR}
+	BL setValueFromMask
+	POP, {LR}
+	MOV R6, R0
+	LDR R2, #0
+	ADD R5, R4, R3
+	MOV
 	BX LR
 
 
+divide											;division loop, leaves Quotient in R1 and Remainder in R0
+	LDR R2, =0	; Q								;set temp quotient to 0
+	LDR R3, =1	; T								;set placeholder to 1
+
+	CMP R1, #0;									;if Divisor == 0
+	LDREQ R0, =-1								;load -1 into remainder
+	LDREQ R1, =-1								;load -1 into quotient
+	BEQ stop									;stop
+	
+alignLoop										;else
+	CMP R0, R1									;while dividend>divisor
+	BLT endAlignLoop							;{
+	LSL R1, #1 									;	multiply divisor by 2
+	LSL R3, #1									;	multiply placeholder by 2
+	B alignLoop									;}
+endAlignLoop
+
+THEREVENGEOFTHEALIGNLOOP						;{
+	LSR R1, #1 									;divide divisor by 2
+	LSRS R3, #1									;divide r3 by 2 and set flag
+	BCS THEENDOFTHEREVENGEOFTHEALIGNLOOP		;while carry flag not set{ 
+	CMP R0, R1									;if(dividend>=divisor)
+	SUBHS R0, R0, R1							;subtract dividend from divisor
+	ADDHS R2, R2, R3							;add placeholder to temp quotient
+	B THEREVENGEOFTHEALIGNLOOP					;}
+THEENDOFTHEREVENGEOFTHEALIGNLOOP				;}
+	MOV R1, R2								
+	BX R14										
+	
 
 start
 
