@@ -1,0 +1,124 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             MotionBlur, CODE, READONLY
+    2 00000000                 IMPORT           main
+    3 00000000                 IMPORT           getPicAddr
+    4 00000000                 IMPORT           putPic
+    5 00000000                 IMPORT           getPicWidth
+    6 00000000                 IMPORT           getPicHeight
+    7 00000000                 EXPORT           start
+    8 00000000         
+    9 00000000         start
+   10 00000000         
+   11 00000000 EBFFFFFE        BL               getPicAddr  ; load the start ad
+                                                            dress of the image 
+                                                            in R4
+   12 00000004 E1A04000        MOV              R4, R0
+   13 00000008 EBFFFFFE        BL               getPicHeight ; load the height 
+                                                            of the image (rows)
+                                                             in R5
+   14 0000000C E1A05000        MOV              R5, R0
+   15 00000010 EBFFFFFE        BL               getPicWidth ; load the width of
+                                                             the image (columns
+                                                            ) in R6
+   16 00000014 E1A06000        MOV              R6, R0
+   17 00000018         
+   18 00000018         ; your code goes here
+   19 00000018         
+   20 00000018 EBFFFFFE        BL               putPic      ; re-display the up
+                                                            dated image
+   21 0000001C         
+   22 0000001C EAFFFFFE 
+                       stop    B                stop
+   23 00000020         
+   24 00000020         
+   25 00000020                 END
+Command Line: --debug --xref --apcs=interwork --depend=.\motionblur.d -o.\motio
+nblur.o -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC:\Keil\ARM\Inc\Ph
+ilips --predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="
+NO_CLOCK_SETUP SETA 1" --predefine="NO_EMC_SETUP SETA 1" --predefine="RAM_INTVE
+C SETA 1" --predefine="RAM_MODE SETA 1" --predefine="REMAP SETA 1" --list=.\mot
+ionblur.lst MotionBlur.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+MotionBlur 00000000
+
+Symbol: MotionBlur
+   Definitions
+      At line 1 in file MotionBlur.s
+   Uses
+      None
+Comment: MotionBlur unused
+start 00000000
+
+Symbol: start
+   Definitions
+      At line 9 in file MotionBlur.s
+   Uses
+      At line 7 in file MotionBlur.s
+Comment: start used once
+stop 0000001C
+
+Symbol: stop
+   Definitions
+      At line 22 in file MotionBlur.s
+   Uses
+      At line 22 in file MotionBlur.s
+Comment: stop used once
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+getPicAddr 00000000
+
+Symbol: getPicAddr
+   Definitions
+      At line 3 in file MotionBlur.s
+   Uses
+      At line 11 in file MotionBlur.s
+Comment: getPicAddr used once
+getPicHeight 00000000
+
+Symbol: getPicHeight
+   Definitions
+      At line 6 in file MotionBlur.s
+   Uses
+      At line 13 in file MotionBlur.s
+Comment: getPicHeight used once
+getPicWidth 00000000
+
+Symbol: getPicWidth
+   Definitions
+      At line 5 in file MotionBlur.s
+   Uses
+      At line 15 in file MotionBlur.s
+Comment: getPicWidth used once
+main 00000000
+
+Symbol: main
+   Definitions
+      At line 2 in file MotionBlur.s
+   Uses
+      None
+Comment: main unused
+putPic 00000000
+
+Symbol: putPic
+   Definitions
+      At line 4 in file MotionBlur.s
+   Uses
+      At line 20 in file MotionBlur.s
+Comment: putPic used once
+5 symbols
+345 symbols in table
