@@ -15,6 +15,7 @@ getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
 	; R0 = row
 	; R1 = column
+	; Stack > base address, height and width
 	; Returns:
 	; R0 = RGBvalue
 	STMFD SP!, {LR}
@@ -24,7 +25,7 @@ getPixel			; address, RGBval = getPixel(row, col)
 	;CMP R1, R6
 	;BHS getPixelError
 	
-	B rowColToIndex		; addressOffset = rowColToIndex(row, col)
+	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
 	LDR R0, [R4, R0, LSL #2]; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
 getPixelFinally
 	LDMFD SP!, {LR}
@@ -37,7 +38,7 @@ rowColToIndex
 	; R1 = col
 	; Return Values
 	; R0 addressIndex
-	MUL R0, R1, R0		; addressOffset = row * col
+	MUL R0, R6, R0		; addressOffset = row * WIDTH
 	ADD R0, R0, R1		; addressOffset += col
 	BX LR
 
@@ -49,7 +50,7 @@ putPixel
 	; R2 = RGB
 	STMFD SP!, {LR}
 	
-	B rowColToIndex		; addressOffset = rowColToIndex(row, col)
+	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
 	STR R2, [R4, R0, LSL #2]; Memory.word(pictureAddress + addressOffset * 4)
 	
 	LDMFD SP!, {LR}
@@ -62,22 +63,23 @@ adjustPixel
 	; R0 = RGB
 	; R2 = contrast   (0 <= contrast) contrast has no effect at 16
 	; R3 = brightness
+
 	STMFD SP!, {R2, R3, LR} ; save link register and pass paramters contrast and brightness
 	
-	LDR R1, = 0x00FF0000	; mask = redMask
-	B getValueFromMask	; val = getValueFromMask(RGB, mask)
-	B adjustColor		; val = adjustColor(val, contrast, brightness)
-	B setValueFromMask	; RGB = setValueFromMask(RGB, mask, value)
+	LDR R1, = 0x00FF0000; mask = redMask
+	BL getValueFromMask	; val = getValueFromMask(RGB, mask)
+	BL adjustColor		; val = adjustColor(val, contrast, brightness)
+	BL setValueFromMask	; RGB = setValueFromMask(RGB, mask, value)
 	
 	LDR R1, = 0x0000FF00
-	B getValueFromMask
-	B adjustColor
-	B setValueFromMask
+	BL getValueFromMask
+	BL adjustColor
+	BL setValueFromMask
 	
-	LDR R1, = 0x0000FF00
-	B getValueFromMask
-	B adjustColor
-	B setValueFromMask
+	LDR R1, = 0x000000FF
+	BL getValueFromMask
+	BL adjustColor
+	BL setValueFromMask
 
 	LDMFD SP!, {R2, R3, LR}
 	BX LR
@@ -92,8 +94,8 @@ adjustColor
 	; R2 = color
 	; Stack > contrast, brightness that order.
 	STMFD SP!, {R4, R5}
-	LDR R4, [SP, #-12]	; contrast = stack.getParameter()
-	LDR R5, [SP, #-8]	; brightness = stack.getParameter()
+	LDR R4, [SP, #8]	; contrast = stack.getParameter()
+	LDR R5, [SP, #12]	; brightness = stack.getParameter()
 	MUL R2, R4, R2		; color *= contrast
 	LSR R2, R2, #4		; color /= 16
 	ADDS R2, R2, R5		; color += brightness
@@ -114,14 +116,17 @@ getValueFromMask
 	; R0 = RGB
 	; R1 = mask
 	; Return Values
+	; R1 = mask
 	; R2 = colorValue
-	BIC R2, R0, R1		; value = RGB & mask
+	AND R2, R0, R1		; value = RGB & mask
+	PUSH {R1}
 getMaskWhile	
 	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
 	BCS endGetMaskWhile	; {
 	LSR R2, R2, #4		;	value >> 4
 	B getMaskWhile		; }
 endGetMaskWhile			
+	POP {R1}
 	BX LR
 	
 setValueFromMask
@@ -134,11 +139,10 @@ setValueFromMask
 	; R2 = colorValue
 	; Return Values
 	; R0 = RGB
-	MVN R1, R1		; invertmask for simplicity
 	BIC R0, R0, R1		; RGB = RGB & mask // remove color
 setMaskWhile	
 	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
-	BCC endSetMaskWhile		; {
+	BCS endSetMaskWhile	; {
 	LSL R2, R2, #4		;	value >> 4
 	B setMaskWhile		; }
 endSetMaskWhile			;
@@ -153,25 +157,28 @@ start
 	BL	getPicWidth	; load the width of the image (columns) in R6
 	MOV	R6, R0
 	
-	LDR R8, =20	; 	Contrast
-	LDR R9, = 0	;	Brightness
+	LDR R9, = 100	; 	Contrast
+	LDR R10, = 0	;	Brightness
 
+	MOV R7, R5
+	MOV R8, R6
+	
 iLoop
-	MOV R7, R6
-	SUBS R5, R5, #1
-	BMI endiLoop
-jLoop
 	SUBS R7, R7, #1
+	BMI endiLoop
+	MOV R8, R6
+jLoop
+	SUBS R8, R8, #1
 	BMI endjLoop
-	MOV R0, R5
-	MOV R1, R7
+	MOV R0, R7
+	MOV R1, R8
 	BL getPixel
-	MOV R2, R8
-	MOV R3, R9
+	MOV R2, R9
+	MOV R3, R10
 	BL adjustPixel
 	MOV R2, R0
-	MOV R0, R5
-	MOV R1, R7
+	MOV R0, R7
+	MOV R1, R8
 	BL putPixel
 	B jLoop
 endjLoop
