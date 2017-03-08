@@ -7,12 +7,13 @@
 	IMPORT	getPicHeight
 	EXPORT	start
 
+copyAddress EQU 0xA1016300
+
 getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
 	; R0 = row
 	; R1 = column
 	; R2 = image address
-	; Stack > width and height
 	; Stack must be cleared by caller
 	; Returns:
 	; R0 = RGBvalue
@@ -29,14 +30,14 @@ rowColToIndex
 	; Parameters
 	; R0 = row
 	; R1 = col
-	; Stack > width and height
 	; Stack must be cleared by caller
 	; Return Values
 	; R0 addressIndex
-	PUSH {R2}
-	LDR R2, [SP, #4]	; width
+	PUSH {R2, LR}
+	MOV R2, R0
+	BL getPicWidth
 	MLA R0, R2, R0, R1	; addressOffset = row * width + col 
-	POP {R2}
+	POP {R2, LR}
 	BX LR
 
 putPixel
@@ -46,7 +47,6 @@ putPixel
 	; R1 = col
 	; R2 = picture address
 	; R3 = RGB
-	; Stack > width and height
 	; Stack must be cleared by caller
 
 	STMFD SP!, {LR}
@@ -155,9 +155,9 @@ averageN
 	; Returns:
 	;	R0 = average
 
-	LDMFD SP!, {R0}
+	LDMFD SP, {R0}
 	STMFD SP!, {R1 - R6, LR}
-	LDR R4, =6
+	LDR R4, =7
 	MOV R3, R0
 	ADD R5, R4, R3
 	LDR R6, =0
@@ -170,7 +170,6 @@ averageN
 	BL averageColor
 	MOV R0, R6
 	LDMFD SP!, {R1 - R6, LR}
-	STMFD SP!, {R1}
 	BX LR
 
 averageColor
@@ -241,15 +240,12 @@ THEENDOFTHEREVENGEOFTHEALIGNLOOP				; }
 	
 
 start
-
 	BL	getPicAddr	; load the start address of the image in R4
 	MOV	R4, R0		; copy destination
-	LDR R5, =pictureCopy
 	BL	getPicHeight	; load the height of the image (rows) in R5
 	MOV	R6, R0
-	BL getPicWidth
-	PUSH {R0}
 
+copyImage
 	SUB R6, R6, #1
 moveLoopI
 	BL getPicWidth
@@ -265,7 +261,7 @@ moveLoopJ
 	MOV R3, R0
 
 	MOV R0, R6
-	LDR R2, pictureCopy
+	LDR R2, =copyAddress
 	BL putPixel 
 	
 	SUBS R7, R7, #1
@@ -276,12 +272,112 @@ endMoveLoopJ
 	BGE moveLoopI
 endMoveLoopI
 
-	BL	putPic		; re-display the updated image
 
+	;; //////////////////////////////////////////////////////////////////////////
+	BL	getPicHeight	; load the height of the image (rows) in R5
+	MOV	R6, R0
+	
+	SUB R6, R6, #1
+move2LoopI
+	BL getPicWidth
+	MOVS R7, R0
+	SUB R7, R7, #1
+
+move2LoopJ
+	
+	LDR R9, =1		; count = 1 (current pixel)
+	
+	LDR R8, =radius
+	LDR R8, [R8]
+	MOV R10, R6
+	MOV R11, R7
+	
+	MOV R0, R6		;
+	MOV R1, R7		;
+	MOV R2, R4		;
+	BL getPixel		; 
+	PUSH {R0}
+	
+topLoop
+	BMI endTopLoop
+	SUBS R6, R6, #1
+	BMI topFinally
+	SUBS R7, R7, #1
+	BMI topFinally
+	MOV R0, R6		;
+	MOV R1, R7		;
+	LDR R2, =copyAddress		;
+	BL getPixel		; 
+	PUSH {R0}
+	ADD R9, R9, #1
+topFinally
+	SUBS R8, R8, #1
+	BNE topLoop
+endTopLoop
+
+	LDR R8, =radius
+	LDR R8, [R8]
+	MOV R6, R10
+	MOV R7, R11
+	
+bottomLoop
+	BMI endBottomLoop
+	ADD R6, R6, #1
+	BL getPicHeight
+	CMP R6, R0
+	BGE bottomFinally
+	ADD R7, R7, #1
+	BL getPicWidth
+	CMP R7, R0
+	BGE bottomFinally
+	MOV R0, R6		;
+	MOV R1, R7		;
+	LDR R2, =copyAddress		;
+	BL getPixel		; 
+	PUSH {R0}
+	ADD R9, R9, #1
+bottomFinally
+	SUBS R8, R8, #1
+	BNE bottomLoop
+endBottomLoop
+
+	PUSH {R9}
+	BL averageN
+	
+			
+	MOV R6, R10
+	MOV R7, R11
+	
+	MOV R3, R0
+	MOV R0, R6
+	MOV R1, R7
+	MOV R2, R4
+	BL putPixel
+
+	
+	POP {R9}
+clearStack
+	POP {R12}
+	SUBS R9, R9, #1
+	BNE clearStack
+	
+
+	SUBS R7, R7, #1		; column --
+	BGE move2LoopJ
+endMove2LoopJ
+
+	SUBS R6, R6, #1
+	BGE move2LoopI
+endMove2LoopI
+
+
+
+	BL	putPic		; re-display the updated image
+	
 stop	B	stop
 
 
-	END	
-
-	AREA DuplicatePicture, DATA, READWRITE
-pictureCopy	SPACE	40000		; area to store duplicate image.
+	AREA Variables, DATA, READWRITE
+	
+radius DCD 3
+	END
