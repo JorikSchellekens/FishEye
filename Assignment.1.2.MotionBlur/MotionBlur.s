@@ -11,13 +11,15 @@ getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
 	; R0 = row
 	; R1 = column
-	; Stack > base address, height and width
+	; R2 = image address
+	; Stack > width and height
+	; Stack must be cleared by caller
 	; Returns:
 	; R0 = RGBvalue
 	STMFD SP!, {LR}
 
 	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
-	LDR R0, [R4, R0, LSL #2]; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
+	LDR R0, [R2, R0, LSL #2]; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
 	
 	LDMFD SP!, {LR}
 	BX LR
@@ -27,22 +29,30 @@ rowColToIndex
 	; Parameters
 	; R0 = row
 	; R1 = col
+	; Stack > width and height
+	; Stack must be cleared by caller
 	; Return Values
 	; R0 addressIndex
-	MUL R0, R6, R0		; addressOffset = row * WIDTH
-	ADD R0, R0, R1		; addressOffset += col
+	PUSH {R2}
+	LDR R2, [SP, #4]	; width
+	MLA R0, R2, R0, R1	; addressOffset = row * width + col 
+	POP {R2}
 	BX LR
 
 putPixel
-	; Stores a given RGB to an pixel of at row, col
+	; Stores a given RGB to a pixel at row, col
 	; Parameters
 	; R0 = row
 	; R1 = col
-	; R2 = RGB
+	; R2 = picture address
+	; R3 = RGB
+	; Stack > width and height
+	; Stack must be cleared by caller
+
 	STMFD SP!, {LR}
 	
 	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
-	STR R2, [R4, R0, LSL #2]; Memory.word(pictureAddress + addressOffset * 4) = RGB
+	STR R3, [R2, R0, LSL #2]; Memory.word(pictureAddress + addressOffset * 4) = RGB
 	
 	LDMFD SP!, {LR}
 	BX LR
@@ -233,46 +243,38 @@ THEENDOFTHEREVENGEOFTHEALIGNLOOP				; }
 start
 
 	BL	getPicAddr	; load the start address of the image in R4
-	MOV	R4, R0
+	MOV	R4, R0		; copy destination
+	LDR R5, =pictureCopy
 	BL	getPicHeight	; load the height of the image (rows) in R5
-	MOV	R5, R0
-	BL	getPicWidth	; load the width of the image (columns) in R6
 	MOV	R6, R0
-
-	MOV R7, R5		; HEIGHT  (Constants) // This officially breaks the statelessnes.
-	SUB R7, R7, #1
-	LDR R8, =0 		; WIDTH
-	LDR R11, =5				; DIAMETER
-	LSR R12, R11, #1		; RADIUS
-	
-bottomRow
-	
-	CMP R8, R6
-	BEQ endBottomRow
-	PUSH {R7, R8}		; save startLocation
-						; R7, R8 is center pixel
-initializeDiagonal
-	CMP R12, #0
-setUpLoop
-	BMI endInitDia
-	MOV R0, R7
-	MOV R1, R8
-	BL getPixel
+	BL getPicWidth
 	PUSH {R0}
-	SUBS R7, R7, #1
-	BMI endInitDia
-	SUBS R8, R8, #1
-	BMI endInitDia
-	SUBS R12, R12, #1
-	B setUpLoop
-	
-endInitDia
-	
-	POP {R7, R8}
-	ADD R8, R8, #1
-	B bottomRow
-endBottomwRow
 
+	SUB R6, R6, #1
+moveLoopI
+	BL getPicWidth
+	MOVS R7, R0
+	SUB R7, R7, #1
+
+moveLoopJ
+	MOV R0, R6
+	MOV R1, R7
+
+	MOV R2, R4
+	BL getPixel
+	MOV R3, R0
+
+	MOV R0, R6
+	LDR R2, pictureCopy
+	BL putPixel 
+	
+	SUBS R7, R7, #1
+	BGE moveLoopJ
+endMoveLoopJ
+
+	SUBS R6, R6, #1
+	BGE moveLoopI
+endMoveLoopI
 
 	BL	putPic		; re-display the updated image
 
@@ -280,3 +282,6 @@ stop	B	stop
 
 
 	END	
+
+	AREA DuplicatePicture, DATA, READWRITE
+pictureCopy	SPACE	40000		; area to store duplicate image.
