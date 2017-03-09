@@ -271,7 +271,7 @@ ARM Macro Assembler    Page 5
   193 0000014C E1A00002        MOV              R0, R2
   194 00000150 E1A01003        MOV              R1, R3
   195 00000154 E52DE004        PUSH             {LR}
-  196 00000158 EB000016        BL               divide
+  196 00000158 EB00002B        BL               divide
   197 0000015C E49DE004        POP              {LR}
   198 00000160 E3510000        CMP              R1, #0
   199 00000164 43A01000        LDRMI            R1, =0
@@ -294,193 +294,208 @@ ARM Macro Assembler    Page 5
   216 00000198         ;    R0 = RGB
   217 00000198         ; Return
   218 00000198         ;    R0 = Light intesity
-  219 00000198 E92D4002        PUSH             {R1, LR}
+  219 00000198 E92D401E        PUSH             {R1, R2, R3, R4, LR}
   220 0000019C E1A02000        MOV              R2, R0
-  221 000001A0 E3A018FF        LDR              R1, =redMask
-  222 000001A4 EBFFFFBF        BL               getValueFromMask
-  223 000001A8 E59FC144        LDR              R12, =299
-  224 000001AC E0030C90        MUL              R3, R0, R12
-  225 000001B0 E59FC140        LDR              R12, =587
-  226 000001B4 E3A0C072        LDR              R12, =114
-  227 000001B8         
-  228 000001B8         ; taken from my group work in the labs
-  229 000001B8         divide                               ;division loop, lea
-                                                            ves Quotient in R1 
-                                                            and Remainder in R0
-                                                            
-  230 000001B8 E92D400C        STMFD            SP!, {R2, R3, LR}
-  231 000001BC         
-  232 000001BC E3A02000        LDR              R2, =0      ; Q        ;set tem
-                                                            p quotient to 0
-  233 000001C0 E3A03001        LDR              R3, =1      ; T        ;set pla
-                                                            ceholder to 1
-  234 000001C4         
-  235 000001C4 E3510000        CMP              R1, #0      ;         ;if Divis
-                                                            or == 0
-  236 000001C8 059F012C        LDREQ            R0, =-1     ;load -1 into remai
-                                                            nder
-  237 000001CC 059F1128        LDREQ            R1, =-1     ;load -1 into quoti
-                                                            ent
-  238 000001D0 0A000046        BEQ              stop        ;stop
-  239 000001D4         
+  221 000001A0 E3A03000        LDR              R3, =0
+  222 000001A4         
+  223 000001A4 E3A018FF        LDR              R1, =redMask
+  224 000001A8 EBFFFFBE        BL               getValueFromMask
+  225 000001AC E59FC168        LDR              R12, =299
+  226 000001B0 E1A01000        MOV              R1, R0
+  227 000001B4 E0000C91        MUL              R0, R1, R12
+  228 000001B8 E0833000        ADD              R3, R3, R0
+  229 000001BC         
+  230 000001BC E1A00002        MOV              R0, R2
+  231 000001C0 E3A01CFF        LDR              R1, =greenMask
+  232 000001C4 EBFFFFB7        BL               getValueFromMask
+  233 000001C8 E59FC150        LDR              R12, =587
+  234 000001CC E1A01000        MOV              R1, R0
+  235 000001D0 E0000C91        MUL              R0, R1, R12
+  236 000001D4 E0833000        ADD              R3, R3, R0
+  237 000001D8         
+  238 000001D8 E1A00002        MOV              R0, R2
+  239 000001DC E3A010FF        LDR              R1, =blueMask
+  240 000001E0 EBFFFFB0        BL               getValueFromMask
+  241 000001E4 E3A0C072        LDR              R12, =114
+  242 000001E8 E1A01000        MOV              R1, R0
+  243 000001EC E0000C91        MUL              R0, R1, R12
+  244 000001F0 E0833000        ADD              R3, R3, R0
+  245 000001F4         
+  246 000001F4 E1A00003        MOV              R0, R3
+  247 000001F8 E3A01FFA        LDR              R1, =1000
 
 
 
 ARM Macro Assembler    Page 6 
 
 
-  240 000001D4         alignLoop                            ;else
-  241 000001D4 E1500001        CMP              R0, R1      ;while dividend>div
+  248 000001FC EB000002        BL               divide
+  249 00000200         
+  250 00000200 E1A00001        MOV              R0, R1
+  251 00000204 E8BD401E        POP              {R1, R2, R3, R4, LR}
+  252 00000208 E12FFF1E        BX               LR
+  253 0000020C         
+  254 0000020C         
+  255 0000020C         ; taken from my group work in the labs
+  256 0000020C         divide                               ;division loop, lea
+                                                            ves Quotient in R1 
+                                                            and Remainder in R0
+                                                            
+  257 0000020C E92D400C        STMFD            SP!, {R2, R3, LR}
+  258 00000210         
+  259 00000210 E3A02000        LDR              R2, =0      ; Q        ;set tem
+                                                            p quotient to 0
+  260 00000214 E3A03001        LDR              R3, =1      ; T        ;set pla
+                                                            ceholder to 1
+  261 00000218         
+  262 00000218 E3510000        CMP              R1, #0      ;         ;if Divis
+                                                            or == 0
+  263 0000021C 059F0100        LDREQ            R0, =-1     ;load -1 into remai
+                                                            nder
+  264 00000220 059F10FC        LDREQ            R1, =-1     ;load -1 into quoti
+                                                            ent
+  265 00000224 0A00003B        BEQ              stop        ;stop
+  266 00000228         
+  267 00000228         alignLoop                            ;else
+  268 00000228 E1500001        CMP              R0, R1      ;while dividend>div
                                                             isor
-  242 000001D8 BA000002        BLT              endAlignLoop ;{
-  243 000001DC E1A01081        LSL              R1, #1      ; multiply divisor 
+  269 0000022C BA000002        BLT              endAlignLoop ;{
+  270 00000230 E1A01081        LSL              R1, #1      ; multiply divisor 
                                                             by 2
-  244 000001E0 E1A03083        LSL              R3, #1      ; multiply placehol
+  271 00000234 E1A03083        LSL              R3, #1      ; multiply placehol
                                                             der by 2
-  245 000001E4 EAFFFFFA        B                alignLoop   ;}
-  246 000001E8         endAlignLoop
-  247 000001E8         
-  248 000001E8         THEREVENGEOFTHEALIGNLOOP             ;{
-  249 000001E8 E1A010A1        LSR              R1, #1      ;divide divisor by 
+  272 00000238 EAFFFFFA        B                alignLoop   ;}
+  273 0000023C         endAlignLoop
+  274 0000023C         
+  275 0000023C         THEREVENGEOFTHEALIGNLOOP             ;{
+  276 0000023C E1A010A1        LSR              R1, #1      ;divide divisor by 
                                                             2
-  250 000001EC E1B030A3        LSRS             R3, #1      ;divide r3 by 2 and
+  277 00000240 E1B030A3        LSRS             R3, #1      ;divide r3 by 2 and
                                                              set flag
-  251 000001F0 2A000003        BCS              THEENDOFTHEREVENGEOFTHEALIGNLOO
+  278 00000244 2A000003        BCS              THEENDOFTHEREVENGEOFTHEALIGNLOO
 P 
                                                             ;while carry flag n
                                                             ot set{ 
-  252 000001F4 E1500001        CMP              R0, R1      ; if(dividend>=divi
+  279 00000248 E1500001        CMP              R0, R1      ; if(dividend>=divi
                                                             sor):
-  253 000001F8 20400001        SUBHS            R0, R0, R1  ;  subtract dividen
+  280 0000024C 20400001        SUBHS            R0, R0, R1  ;  subtract dividen
                                                             d from divisor
-  254 000001FC 20822003        ADDHS            R2, R2, R3  ;  add placeholder 
+  281 00000250 20822003        ADDHS            R2, R2, R3  ;  add placeholder 
                                                             to temp quotient
-  255 00000200 EAFFFFF8        B                THEREVENGEOFTHEALIGNLOOP ; 
-  256 00000204         THEENDOFTHEREVENGEOFTHEALIGNLOOP     ; }
-  257 00000204 E1A01002        MOV              R1, R2
-  258 00000208 E8BD400C        LDMFD            SP!, {R2, R3, LR}
-  259 0000020C E12FFF1E        BX               LR
-  260 00000210         
-  261 00000210         
-  262 00000210         start
-  263 00000210 EBFFFFFE        BL               getPicAddr  ; load the start ad
-                                                            dress of the image 
-                                                            in R4
-  264 00000214 E1A04000        MOV              R4, R0      ; copy destination
-  265 00000218 EBFFFFFE        BL               getPicHeight ; load the height 
-                                                            of the image (rows)
-                                                             in R5
-  266 0000021C E1A06000        MOV              R6, R0
-  267 00000220         
-  268 00000220         copyImage
-  269 00000220 E2466001        SUB              R6, R6, #1
-  270 00000224         moveLoopI
-  271 00000224 EBFFFFFE        BL               getPicWidth
-  272 00000228 E1B07000        MOVS             R7, R0
-  273 0000022C E2477001        SUB              R7, R7, #1
-  274 00000230         
-  275 00000230         moveLoopJ
-  276 00000230 E1A00006        MOV              R0, R6
-  277 00000234 E1A01007        MOV              R1, R7
-  278 00000238         
-  279 00000238 E1A02004        MOV              R2, R4
-  280 0000023C EBFFFF6F        BL               getPixel
-  281 00000240 E1A03000        MOV              R3, R0
-  282 00000244         
-  283 00000244 E1A00006        MOV              R0, R6
+  282 00000254 EAFFFFF8        B                THEREVENGEOFTHEALIGNLOOP ; 
+  283 00000258         THEENDOFTHEREVENGEOFTHEALIGNLOOP     ; }
+  284 00000258 E1A01002        MOV              R1, R2
+  285 0000025C E8BD400C        LDMFD            SP!, {R2, R3, LR}
+  286 00000260 E12FFF1E        BX               LR
+  287 00000264         
 
 
 
 ARM Macro Assembler    Page 7 
 
 
-  284 00000248 E59F20B0        LDR              R2, =copyAddress
-  285 0000024C EBFFFF76        BL               putPixel
-  286 00000250         
-  287 00000250 E2577001        SUBS             R7, R7, #1
-  288 00000254 AAFFFFF5        BGE              moveLoopJ
-  289 00000258         endMoveLoopJ
-  290 00000258         
-  291 00000258 E2566001        SUBS             R6, R6, #1
-  292 0000025C AAFFFFF0        BGE              moveLoopI
-  293 00000260         endMoveLoopI
-  294 00000260         
-  295 00000260         
-  296 00000260         ;; /////////////////////////////////////////////////////
-                       /////////////////////
-  297 00000260 EBFFFFFE        BL               getPicHeight ; load the height 
+  288 00000264         
+  289 00000264         start
+  290 00000264 EBFFFFFE        BL               getPicAddr  ; load the start ad
+                                                            dress of the image 
+                                                            in R4
+  291 00000268 E1A04000        MOV              R4, R0      ; copy destination
+  292 0000026C EBFFFFFE        BL               getPicHeight ; load the height 
                                                             of the image (rows)
                                                              in R5
-  298 00000264 E1A06000        MOV              R6, R0
-  299 00000268         
-  300 00000268 E2466001        SUB              R6, R6, #1
-  301 0000026C         move2LoopI
-  302 0000026C EBFFFFFE        BL               getPicWidth
-  303 00000270 E1B07000        MOVS             R7, R0
-  304 00000274 E2477001        SUB              R7, R7, #1
-  305 00000278         
-  306 00000278         move2LoopJ
-  307 00000278 E1A00006        MOV              R0, R6      ;
-  308 0000027C E1A01007        MOV              R1, R7      ;
-  309 00000280 E59F2078        LDR              R2, =copyAddress ;
-  310 00000284 EBFFFF5D        BL               getPixel    ;
-  311 00000288 E1A0B000        MOV              R11, R0
-  312 0000028C         
-  313 0000028C E2468031        SUB              R8, R6, #yhalf
-  314 00000290 E1A09008        MOV              R9, R8
-  315 00000294 E0080899        MUL              R8, R9, R8
-  316 00000298 E0988006        ADDS             R8, R8, R6
-  317 0000029C 4A00000E        BMI              finaly
-  318 000002A0 EBFFFFFE        BL               getPicHeight
-  319 000002A4 E1580000        CMP              R8, R0
-  320 000002A8 AA00000B        BGE              finaly
-  321 000002AC         
-  322 000002AC E2479028        SUB              R9, R7, #xhalf
-  323 000002B0 E1A0A009        MOV              R10, R9
-  324 000002B4 E0999007        ADDS             R9, R9, R7
-  325 000002B8 4A000007        BMI              finaly
-  326 000002BC EBFFFFFE        BL               getPicWidth
-  327 000002C0 E1590000        CMP              R9, R0
-  328 000002C4 AA000004        BGE              finaly
-  329 000002C8         
-  330 000002C8 E1A00008        MOV              R0, R8      ;
-  331 000002CC E1A01009        MOV              R1, R9      ;
-  332 000002D0 E1A02004        MOV              R2, R4      ;
-  333 000002D4 E1A0300B        MOV              R3, R11
-  334 000002D8 EBFFFF53        BL               putPixel    ;
-  335 000002DC         
-  336 000002DC         finaly
-  337 000002DC E2577001        SUBS             R7, R7, #1  ; column --
-  338 000002E0 AAFFFFE4        BGE              move2LoopJ
-  339 000002E4         endMove2LoopJ
+  293 00000270 E1A06000        MOV              R6, R0
+  294 00000274         
+  295 00000274         copyImage
+  296 00000274 E2466001        SUB              R6, R6, #1
+  297 00000278         moveLoopI
+  298 00000278 EBFFFFFE        BL               getPicWidth
+  299 0000027C E1B07000        MOVS             R7, R0
+  300 00000280 E2477001        SUB              R7, R7, #1
+  301 00000284         
+  302 00000284         moveLoopJ
+  303 00000284 E1A00006        MOV              R0, R6
+  304 00000288 E1A01007        MOV              R1, R7
+  305 0000028C         
+  306 0000028C E1A02004        MOV              R2, R4
+  307 00000290 EBFFFF5A        BL               getPixel
+  308 00000294 E1A03000        MOV              R3, R0
+  309 00000298         
+  310 00000298 E1A00006        MOV              R0, R6
+  311 0000029C E59F2084        LDR              R2, =copyAddress
+  312 000002A0 EBFFFF61        BL               putPixel
+  313 000002A4         
+  314 000002A4 E2577001        SUBS             R7, R7, #1
+  315 000002A8 AAFFFFF5        BGE              moveLoopJ
+  316 000002AC         endMoveLoopJ
+  317 000002AC         
+  318 000002AC E2566001        SUBS             R6, R6, #1
+  319 000002B0 AAFFFFF0        BGE              moveLoopI
+  320 000002B4         endMoveLoopI
+  321 000002B4         
+  322 000002B4         
+  323 000002B4         ;; /////////////////////////////////////////////////////
+                       /////////////////////
+  324 000002B4 EBFFFFFE        BL               getPicHeight ; load the height 
+                                                            of the image (rows)
+                                                             in R5
+  325 000002B8 E1A06000        MOV              R6, R0
+  326 000002BC         
+  327 000002BC E2466001        SUB              R6, R6, #1
+  328 000002C0         move2LoopI
+  329 000002C0 EBFFFFFE        BL               getPicWidth
+  330 000002C4 E1B07000        MOVS             R7, R0
+  331 000002C8 E2477001        SUB              R7, R7, #1
+  332 000002CC         
+  333 000002CC         move2LoopJ
+  334 000002CC E1A00006        MOV              R0, R6      ;
+  335 000002D0 E1A01007        MOV              R1, R7      ;
+  336 000002D4 E59F204C        LDR              R2, =copyAddress ;
+  337 000002D8 EBFFFF48        BL               getPixel    ;
+  338 000002DC         
+  339 000002DC EBFFFFAD        BL               greyScale
 
 
 
 ARM Macro Assembler    Page 8 
 
 
-  340 000002E4         
-  341 000002E4 E2566001        SUBS             R6, R6, #1
-  342 000002E8 AAFFFFDF        BGE              move2LoopI
-  343 000002EC         endMove2LoopI
-  344 000002EC         
-  345 000002EC         
-  346 000002EC         
-  347 000002EC EBFFFFFE        BL               putPic      ; re-display the up
+  340 000002E0 E1A01400        LSL              R1, R0, #8
+  341 000002E4 E0811000        ADD              R1, R1, R0
+  342 000002E8 E1A01401        LSL              R1, R1, #8
+  343 000002EC E0800001        ADD              R0, R0, R1
+  344 000002F0         
+  345 000002F0 E1A03000        MOV              R3, R0
+  346 000002F4 E1A00006        MOV              R0, R6      ;
+  347 000002F8 E1A01007        MOV              R1, R7      ;
+  348 000002FC E1A02004        MOV              R2, R4
+  349 00000300 EBFFFF49        BL               putPixel
+  350 00000304         
+  351 00000304         finaly
+  352 00000304 E2577001        SUBS             R7, R7, #1  ; column --
+  353 00000308 AAFFFFEF        BGE              move2LoopJ
+  354 0000030C         endMove2LoopJ
+  355 0000030C         
+  356 0000030C E2566001        SUBS             R6, R6, #1
+  357 00000310 AAFFFFEA        BGE              move2LoopI
+  358 00000314         endMove2LoopI
+  359 00000314         
+  360 00000314         
+  361 00000314         
+  362 00000314 EBFFFFFE        BL               putPic      ; re-display the up
                                                             dated image
-  348 000002F0         
-  349 000002F0 EAFFFFFE 
+  363 00000318         
+  364 00000318 EAFFFFFE 
                        stop    B                stop
-  350 000002F4         
-  351 000002F4         
-  352 000002F4 0000012B 
+  365 0000031C         
+  366 0000031C         
+  367 0000031C 0000012B 
               0000024B 
               FFFFFFFF 
               A1016300         AREA             Variables, DATA, READWRITE
-  353 00000000         
-  354 00000000 00000002 
+  368 00000000         
+  369 00000000 00000002 
                        radius  DCD              2
-  355 00000004                 END
+  370 00000004                 END
 Command Line: --debug --xref --apcs=interwork --depend=.\bonuseffect.d -o.\bonu
 seffect.o -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC:\Keil\ARM\Inc\
 Philips --predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine
@@ -501,21 +516,21 @@ Symbol: MotionBlur
    Uses
       None
 Comment: MotionBlur unused
-THEENDOFTHEREVENGEOFTHEALIGNLOOP 00000204
+THEENDOFTHEREVENGEOFTHEALIGNLOOP 00000258
 
 Symbol: THEENDOFTHEREVENGEOFTHEALIGNLOOP
    Definitions
-      At line 256 in file BonusEffect.s
+      At line 283 in file BonusEffect.s
    Uses
-      At line 251 in file BonusEffect.s
+      At line 278 in file BonusEffect.s
 Comment: THEENDOFTHEREVENGEOFTHEALIGNLOOP used once
-THEREVENGEOFTHEALIGNLOOP 000001E8
+THEREVENGEOFTHEALIGNLOOP 0000023C
 
 Symbol: THEREVENGEOFTHEALIGNLOOP
    Definitions
-      At line 248 in file BonusEffect.s
+      At line 275 in file BonusEffect.s
    Uses
-      At line 255 in file BonusEffect.s
+      At line 282 in file BonusEffect.s
 Comment: THEREVENGEOFTHEALIGNLOOP used once
 adjustColor 0000007C
 
@@ -535,13 +550,13 @@ Symbol: adjustPixel
    Uses
       None
 Comment: adjustPixel unused
-alignLoop 000001D4
+alignLoop 00000228
 
 Symbol: alignLoop
    Definitions
-      At line 240 in file BonusEffect.s
+      At line 267 in file BonusEffect.s
    Uses
-      At line 245 in file BonusEffect.s
+      At line 272 in file BonusEffect.s
 Comment: alignLoop used once
 averageColor 00000124
 
@@ -567,29 +582,30 @@ Symbol: averageN
    Uses
       None
 Comment: averageN unused
-copyImage 00000220
+copyImage 00000274
 
 Symbol: copyImage
    Definitions
-      At line 268 in file BonusEffect.s
+      At line 295 in file BonusEffect.s
    Uses
       None
 Comment: copyImage unused
-divide 000001B8
+divide 0000020C
 
 Symbol: divide
    Definitions
-      At line 229 in file BonusEffect.s
+      At line 256 in file BonusEffect.s
    Uses
       At line 196 in file BonusEffect.s
-Comment: divide used once
-endAlignLoop 000001E8
+      At line 248 in file BonusEffect.s
+
+endAlignLoop 0000023C
 
 Symbol: endAlignLoop
    Definitions
-      At line 246 in file BonusEffect.s
+      At line 273 in file BonusEffect.s
    Uses
-      At line 242 in file BonusEffect.s
+      At line 269 in file BonusEffect.s
 Comment: endAlignLoop used once
 endForN 00000148
 
@@ -607,41 +623,41 @@ Symbol: endGetMaskWhile
    Uses
       At line 128 in file BonusEffect.s
 Comment: endGetMaskWhile used once
-endMove2LoopI 000002EC
+endMove2LoopI 00000314
 
 Symbol: endMove2LoopI
    Definitions
-      At line 343 in file BonusEffect.s
+      At line 358 in file BonusEffect.s
    Uses
       None
 Comment: endMove2LoopI unused
-endMove2LoopJ 000002E4
-
+endMove2LoopJ 0000030C
 
 
 
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Relocatable symbols
 
+
 Symbol: endMove2LoopJ
    Definitions
-      At line 339 in file BonusEffect.s
+      At line 354 in file BonusEffect.s
    Uses
       None
 Comment: endMove2LoopJ unused
-endMoveLoopI 00000260
+endMoveLoopI 000002B4
 
 Symbol: endMoveLoopI
    Definitions
-      At line 293 in file BonusEffect.s
+      At line 320 in file BonusEffect.s
    Uses
       None
 Comment: endMoveLoopI unused
-endMoveLoopJ 00000258
+endMoveLoopJ 000002AC
 
 Symbol: endMoveLoopJ
    Definitions
-      At line 289 in file BonusEffect.s
+      At line 316 in file BonusEffect.s
    Uses
       None
 Comment: endMoveLoopJ unused
@@ -653,17 +669,14 @@ Symbol: endSetMaskWhile
    Uses
       At line 148 in file BonusEffect.s
 Comment: endSetMaskWhile used once
-finaly 000002DC
+finaly 00000304
 
 Symbol: finaly
    Definitions
-      At line 336 in file BonusEffect.s
+      At line 351 in file BonusEffect.s
    Uses
-      At line 317 in file BonusEffect.s
-      At line 320 in file BonusEffect.s
-      At line 325 in file BonusEffect.s
-      At line 328 in file BonusEffect.s
-
+      None
+Comment: finaly unused
 forN 00000124
 
 Symbol: forN
@@ -682,18 +695,18 @@ Symbol: getMaskWhile
 Comment: getMaskWhile used once
 getPixel 00000000
 
+Symbol: getPixel
+   Definitions
 
 
 
 ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Relocatable symbols
 
-Symbol: getPixel
-   Definitions
       At line 17 in file BonusEffect.s
    Uses
-      At line 280 in file BonusEffect.s
-      At line 310 in file BonusEffect.s
+      At line 307 in file BonusEffect.s
+      At line 337 in file BonusEffect.s
 
 getValueFromMask 000000A8
 
@@ -705,7 +718,9 @@ Symbol: getValueFromMask
       At line 81 in file BonusEffect.s
       At line 86 in file BonusEffect.s
       At line 186 in file BonusEffect.s
-      At line 222 in file BonusEffect.s
+      At line 224 in file BonusEffect.s
+      At line 232 in file BonusEffect.s
+      At line 240 in file BonusEffect.s
 
 greyScale 00000198
 
@@ -713,39 +728,39 @@ Symbol: greyScale
    Definitions
       At line 213 in file BonusEffect.s
    Uses
-      None
-Comment: greyScale unused
-move2LoopI 0000026C
+      At line 339 in file BonusEffect.s
+Comment: greyScale used once
+move2LoopI 000002C0
 
 Symbol: move2LoopI
    Definitions
-      At line 301 in file BonusEffect.s
+      At line 328 in file BonusEffect.s
    Uses
-      At line 342 in file BonusEffect.s
+      At line 357 in file BonusEffect.s
 Comment: move2LoopI used once
-move2LoopJ 00000278
+move2LoopJ 000002CC
 
 Symbol: move2LoopJ
    Definitions
-      At line 306 in file BonusEffect.s
+      At line 333 in file BonusEffect.s
    Uses
-      At line 338 in file BonusEffect.s
+      At line 353 in file BonusEffect.s
 Comment: move2LoopJ used once
-moveLoopI 00000224
+moveLoopI 00000278
 
 Symbol: moveLoopI
    Definitions
-      At line 270 in file BonusEffect.s
+      At line 297 in file BonusEffect.s
    Uses
-      At line 292 in file BonusEffect.s
+      At line 319 in file BonusEffect.s
 Comment: moveLoopI used once
-moveLoopJ 00000230
+moveLoopJ 00000284
 
 Symbol: moveLoopJ
    Definitions
-      At line 275 in file BonusEffect.s
+      At line 302 in file BonusEffect.s
    Uses
-      At line 288 in file BonusEffect.s
+      At line 315 in file BonusEffect.s
 Comment: moveLoopJ used once
 
 
@@ -759,8 +774,8 @@ Symbol: putPixel
    Definitions
       At line 48 in file BonusEffect.s
    Uses
-      At line 285 in file BonusEffect.s
-      At line 334 in file BonusEffect.s
+      At line 312 in file BonusEffect.s
+      At line 349 in file BonusEffect.s
 
 rowColToIndex 00000014
 
@@ -790,22 +805,22 @@ Symbol: setValueFromMask
       At line 88 in file BonusEffect.s
       At line 206 in file BonusEffect.s
 
-start 00000210
+start 00000264
 
 Symbol: start
    Definitions
-      At line 262 in file BonusEffect.s
+      At line 289 in file BonusEffect.s
    Uses
       At line 8 in file BonusEffect.s
 Comment: start used once
-stop 000002F0
+stop 00000318
 
 Symbol: stop
    Definitions
-      At line 349 in file BonusEffect.s
+      At line 364 in file BonusEffect.s
    Uses
-      At line 238 in file BonusEffect.s
-      At line 349 in file BonusEffect.s
+      At line 265 in file BonusEffect.s
+      At line 364 in file BonusEffect.s
 
 34 symbols
 
@@ -818,7 +833,7 @@ Variables 00000000
 
 Symbol: Variables
    Definitions
-      At line 352 in file BonusEffect.s
+      At line 367 in file BonusEffect.s
    Uses
       None
 Comment: Variables unused
@@ -826,7 +841,7 @@ radius 00000000
 
 Symbol: radius
    Definitions
-      At line 354 in file BonusEffect.s
+      At line 369 in file BonusEffect.s
    Uses
       None
 Comment: radius unused
@@ -845,6 +860,7 @@ Symbol: blueMask
    Uses
       At line 85 in file BonusEffect.s
       At line 174 in file BonusEffect.s
+      At line 239 in file BonusEffect.s
 
 copyAddress A1016300
 
@@ -852,8 +868,8 @@ Symbol: copyAddress
    Definitions
       At line 10 in file BonusEffect.s
    Uses
-      At line 284 in file BonusEffect.s
-      At line 309 in file BonusEffect.s
+      At line 311 in file BonusEffect.s
+      At line 336 in file BonusEffect.s
 
 greenMask 0000FF00
 
@@ -863,6 +879,7 @@ Symbol: greenMask
    Uses
       At line 80 in file BonusEffect.s
       At line 172 in file BonusEffect.s
+      At line 231 in file BonusEffect.s
 
 redMask 00FF0000
 
@@ -872,7 +889,7 @@ Symbol: redMask
    Uses
       At line 75 in file BonusEffect.s
       At line 170 in file BonusEffect.s
-      At line 221 in file BonusEffect.s
+      At line 223 in file BonusEffect.s
 
 xhalf 00000028
 
@@ -880,16 +897,16 @@ Symbol: xhalf
    Definitions
       At line 14 in file BonusEffect.s
    Uses
-      At line 322 in file BonusEffect.s
-Comment: xhalf used once
+      None
+Comment: xhalf unused
 yhalf 00000031
 
 Symbol: yhalf
    Definitions
       At line 15 in file BonusEffect.s
    Uses
-      At line 313 in file BonusEffect.s
-Comment: yhalf used once
+      None
+Comment: yhalf unused
 6 symbols
 
 
@@ -903,7 +920,7 @@ Symbol: getPicAddr
    Definitions
       At line 4 in file BonusEffect.s
    Uses
-      At line 263 in file BonusEffect.s
+      At line 290 in file BonusEffect.s
 Comment: getPicAddr used once
 getPicHeight 00000000
 
@@ -911,9 +928,8 @@ Symbol: getPicHeight
    Definitions
       At line 7 in file BonusEffect.s
    Uses
-      At line 265 in file BonusEffect.s
-      At line 297 in file BonusEffect.s
-      At line 318 in file BonusEffect.s
+      At line 292 in file BonusEffect.s
+      At line 324 in file BonusEffect.s
 
 getPicWidth 00000000
 
@@ -922,9 +938,8 @@ Symbol: getPicWidth
       At line 6 in file BonusEffect.s
    Uses
       At line 43 in file BonusEffect.s
-      At line 271 in file BonusEffect.s
-      At line 302 in file BonusEffect.s
-      At line 326 in file BonusEffect.s
+      At line 298 in file BonusEffect.s
+      At line 329 in file BonusEffect.s
 
 main 00000000
 
@@ -940,7 +955,7 @@ Symbol: putPic
    Definitions
       At line 5 in file BonusEffect.s
    Uses
-      At line 347 in file BonusEffect.s
+      At line 362 in file BonusEffect.s
 Comment: putPic used once
 5 symbols
 386 symbols in table

@@ -216,14 +216,46 @@ greyScale
 	;				R0 = RGB
 	; Return
 	;				R0 = Light intesity
-	PUSH {R1, LR}
+	PUSH {R1, R2, R3, R4, LR}
 	MOV R2, R0
+	LDR R3, =0
+	
 	LDR R1, =redMask
 	BL getValueFromMask
 	LDR R12, =299
-	MUL R3, R0, R12
+	MOV R1, R0
+	MUL R0, R1, R12
+	ADD R3, R3, R0
+	
+	MOV R0, R2
+	LDR R1, =greenMask
+	BL getValueFromMask
 	LDR R12, =587
+	MOV R1, R0
+	MUL R0, R1, R12
+	ADD R3, R3, R0
+	
+	MOV R0, R2
+	LDR R1, =blueMask
+	BL getValueFromMask
 	LDR R12, =114
+	MOV R1, R0	
+	MUL R0, R1, R12
+	ADD R3, R3, R0
+	
+	MOV R0, R3
+	LDR R1, =1000
+	BL divide
+	
+	MOV R0, R1
+	LSL R1, R0, #8
+	ADD R1, R1, R0
+	LSL R1, R1, #8
+	ADD R0, R0, R1
+	
+	POP {R1, R2, R3, R4, LR}
+	BX LR
+	
 
 ; taken from my group work in the labs
 divide											;division loop, leaves Quotient in R1 and Remainder in R0
@@ -278,8 +310,10 @@ moveLoopJ
 
 	MOV R2, R4
 	BL getPixel
-	MOV R3, R0
 
+	BL greyScale
+	
+	MOV R3, R0
 	MOV R0, R6
 	LDR R2, =copyAddress
 	BL putPixel 
@@ -306,38 +340,16 @@ move2LoopI
 move2LoopJ
 	MOV R0, R6		;
 	MOV R1, R7		;
-	LDR R2, =copyAddress		;
+	LDR R2, =copyAddress;
 	BL getPixel		;
-	MOV R11, R0
-
-	SUB R8, R6, #yhalf
-	MOV R9, R8
-	MUL R8, R9, R8
-	LSR R8, R8, #16
-	ADD R8, R8, #1
-	MULS R8, R9, R8
-	ADDS R8, R8, R6
-	BMI finaly
-	BL getPicHeight
-	CMP R8, R0
-	BGE finaly
 	
-	SUB R9, R7, #xhalf
-	MOV R10, R9
-	LSR R9, R9, #16
-	ADD R9, R9, #1
-	MUL R9, R10, R9
-	ADDS R9, R9, R7
-	BMI finaly
-	BL getPicWidth
-	CMP R9, R0
-	BGE finaly
+	BL greyScale
 	
-	MOV R0, R8		;
-	MOV R1, R9		;
-	MOV R2, R4		;
-	MOV R3, R11
-	BL putPixel		;
+	MOV R3, R0
+	MOV R0, R6		;
+	MOV R1, R7		;
+	MOV R2, R4
+	BL putPixel
 	
 finaly
 	SUBS R7, R7, #1		; column --
