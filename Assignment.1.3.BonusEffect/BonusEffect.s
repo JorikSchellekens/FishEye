@@ -14,9 +14,11 @@ blueMask 	EQU 0x000000FF
 xhalf		EQU 40
 yhalf		EQU 49
 lensn		EQU 1
-lensq		EQU 6
+lensq		EQU 10
 
 
+
+;<--------------Pixel Manipulation-------------->
 getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
 	; R0 = row
@@ -31,21 +33,6 @@ getPixel			; address, RGBval = getPixel(row, col)
 	LDR R0, [R2, R0, LSL #2]; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
 	
 	LDMFD SP!, {LR}
-	BX LR
-	
-rowColToIndex
-	; converts row and colum to index
-	; Parameters
-	; R0 = row
-	; R1 = col
-	; Stack must be cleared by caller
-	; Return Values
-	; R0 addressIndex
-	PUSH {R2, LR}
-	MOV R2, R0
-	BL getPicWidth
-	MLA R0, R2, R0, R1	; addressOffset = row * width + col 
-	POP {R2, LR}
 	BX LR
 
 putPixel
@@ -64,6 +51,157 @@ putPixel
 	
 	LDMFD SP!, {LR}
 	BX LR
+
+rowColToIndex
+	; converts row and colum to index
+	; Parameters
+	; R0 = row
+	; R1 = col
+	; Stack must be cleared by caller
+	; Return Values
+	; R0 addressIndex
+	PUSH {R2, LR}
+	MOV R2, R0
+	BL getPicWidth
+	MLA R0, R2, R0, R1	; addressOffset = row * width + col 
+	POP {R2, LR}
+	BX LR
+	
+getValueFromMask
+	; Gets the color value under a congruent mask
+	; Expects masks of type FF
+	; eg mask 00FF0000 will return the value under FF in this case the value of red
+	; Parameters
+	; R0 = RGB
+	; R1 = mask
+	; Return Values
+	; R1 = mask
+	; R0 = colorValue
+	AND R0, R0, R1		; value = RGB & mask
+	PUSH {R1}
+getMaskWhile	
+	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
+	BCS endGetMaskWhile	; {
+	LSR R0, R0, #4		;	value >> 4
+	B getMaskWhile		; }
+endGetMaskWhile			
+	POP {R1}
+	BX LR
+	
+setValueFromMask
+	; Sets the color value under a congruent mask
+	; Expects masks of type FF
+	; Takes in a value and a location in form FF
+	; Parameters
+	; R0 = RGB
+	; R1 = mask
+	; R2 = colorValue
+	; Return Values
+	; R0 = RGB
+	BIC R0, R0, R1		; RGB = RGB & mask // remove color
+setMaskWhile	
+	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
+	BCS endSetMaskWhile	; {
+	LSL R2, R2, #4		;	value >> 4
+	B setMaskWhile		; }
+endSetMaskWhile			;
+	ADD R0, R0, R2		; RGB = RGB + value
+	BX LR
+
+copy
+	; Copies between the original and duplicate image locations
+	; Parameters:
+	; 				R0 = row
+	;				R1 = col
+	PUSH {R0, R1, R2, R3, R6, R7, LR}
+	MOV R6, R0
+	MOV R7, R1
+	
+	BL getPicAddr
+	MOV R2, R0
+	MOV R0, R6
+	MOV R1, R7
+	BL getPixel
+	
+	MOV R3, R0
+	MOV R0, R6
+	LDR R2, =copyAddress
+	BL putPixel 
+	
+	POP {R0, R1, R2, R3, R6, R7, LR}
+	BX LR
+	
+lensEffectCopy
+	PUSH {R0, R1, R2, R3, R4, R6, R7, LR}
+	MOV R6, R0		;
+	MOV R7, R1		;
+	
+	BL getPicAddr
+	MOV R4, R0
+	
+	MOV R0, R6		;
+
+	BL applyLens
+	LDR R2, =copyAddress;
+	BL getPixel		;
+		
+	MOV R3, R0
+	MOV R0, R6		;
+	MOV R1, R7		;
+	MOV R2, R4
+	BL putPixel
+
+	POP {R0, R1, R2, R3, R4, R6, R7, LR}
+	BX LR
+	
+applyGreyScale
+	; Wrapper to apply greyscale to original
+	; Parameters:
+	;				R0 = row
+	;				R1 = col
+	PUSH {R0, R1, R2, R3, R4, LR}
+	MOV R4, R0
+	BL getPicAddr
+	MOV R2, R0
+	MOV R0, R3
+	BL getPixel
+	BL greyScale
+	MOV R3, R0
+	MOV R0, R4
+	BL putPixel
+	POP {R0, R1, R2, R3, R4, LR}
+	BX LR
+	
+applyToAll
+	; Loops through all (row, col) combinations and executes the given subroutine.
+	; Paramenters:
+	;		R0 = routine address
+	PUSH {R0, R1, R2, R3, LR}
+	MOV R2, R0
+	BL getPicWidth
+	MOV R1, R0
+	BL getPicHeight
+	
+	SUB R0, R0, #1
+row_whl
+	MOV R3, R0
+	BL getPicWidth
+	MOV R1, R0
+	MOV R0, R3
+	SUB R1, R1, #1
+col_whl
+	MOV LR, PC
+	BX R2
+	SUBS R1, R1, #1
+	BGE col_whl
+end_col_whl
+	SUBS R0, R0, #1
+	BGE row_whl
+end_row_whl
+	POP {R0, R1, R2, R3, LR}
+	BX LR
+	
+;<--------------Effects-------------->
 	
 adjustPixel
 	; adjustedVal = adjustPixel(value, contrast, brightness)
@@ -114,47 +252,6 @@ adjustColor
 	LDMFD SP!, {R4, R5}	; restore pointers
 	BX LR
 	
-getValueFromMask
-	; Gets the color value under a congruent mask
-	; Expects masks of type FF
-	; eg mask 00FF0000 will return the value under FF in this case the value of red
-	; Parameters
-	; R0 = RGB
-	; R1 = mask
-	; Return Values
-	; R1 = mask
-	; R0 = colorValue
-	AND R0, R0, R1		; value = RGB & mask
-	PUSH {R1}
-getMaskWhile	
-	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
-	BCS endGetMaskWhile	; {
-	LSR R0, R0, #4		;	value >> 4
-	B getMaskWhile		; }
-endGetMaskWhile			
-	POP {R1}
-	BX LR
-	
-setValueFromMask
-	; Sets the color value under a congruent mask
-	; Expects masks of type FF
-	; Takes in a value and a location in form FF
-	; Parameters
-	; R0 = RGB
-	; R1 = mask
-	; R2 = colorValue
-	; Return Values
-	; R0 = RGB
-	BIC R0, R0, R1		; RGB = RGB & mask // remove color
-setMaskWhile	
-	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
-	BCS endSetMaskWhile	; {
-	LSL R2, R2, #4		;	value >> 4
-	B setMaskWhile		; }
-endSetMaskWhile			;
-	ADD R0, R0, R2		; RGB = RGB + value
-	BX LR
-
 averageN
 	; Takes in five RGB values and computes their blur value.
 	; Parameters:
@@ -179,7 +276,6 @@ averageN
 	MOV R0, R6
 	LDMFD SP!, {R1 - R6, LR}
 	BX LR
-
 averageColor
 forN
 	CMP R5, R4
@@ -259,10 +355,66 @@ greyScale
 	POP {R1, R2, R3, R4, LR}
 	BX LR
 	
-
-
-applyFuncToAll
-	; applies a passed subroutine for every pixel
+applyLens
+	; R0 = y
+	; R1 = X
+	
+normalize_origin
+	PUSH {r0, r1, R2, R3, R4, R9, R10, R11, LR}
+	
+	LDR R4, =lensq
+	BL getPicHeight
+	LSR R0, R0, #1
+	MOV R2, R0
+	
+	BL getPicWidth
+	LSR R0, R0, #1
+	MOV R3, R0
+	
+	POP {r0, r1}
+	
+	SUB R0, R0, R2		; y -= centery
+	SUB R1, R1, R3		; x -= centery
+	
+	MOV R10, R0			; save y
+	MOV R11, R1			; save x
+	
+	BL distanceSqr
+	BL sqrt
+	MOV R9, R0
+	
+	MOV R0, R10
+	CMP R4, R9
+	MULLT R0, R4, R0
+	MULGE R0, R9, R0
+	MOV R1, R9
+	BL divide
+	SUB R10, R10, R1
+	
+	MOV R0, R11
+	CMP R4, R9
+	MULLT R0, R4, R0
+	MULGE R0, R9, R0
+	MOV R1, R9
+	BL divide
+	SUB R11, R11, R1
+	
+	BL getPicHeight
+	LSR R0, R0, #1
+	ADD R10, R10, R0
+	
+	BL getPicWidth
+	LSR R0, R0, #1
+	ADD R1, R11, R0
+	
+	MOV R0, R10
+	
+	
+	POP {R2, R3, R4, R9, R10, R11, LR}
+	BX LR
+	
+	
+;<---------------Square root methods---------------->
 	
 sqrt
 	; Finds the square root of a number
@@ -296,68 +448,12 @@ end_sqr_whl
 	POP {R1, R2, R3, R4, R11, LR}
 	BX LR
 	
-	
-applyLens
-	; R0 = y
-	; R1 = X
-	
-normalize_origin
-	PUSH {r0, r1, R2, R3, R9, R10, R11, LR}
-	
-	BL getPicHeight
-	LSR R0, R0, #1
-	MOV R2, R0
-	
-	BL getPicWidth
-	LSR R0, R0, #1
-	MOV R3, R0
-	
-	POP {r0, r1}
-	
-	SUB R0, R0, R2		; y -= centery
-	SUB R1, R1, R3		; x -= centery
-	
-	MOV R10, R0			; save y
-	MOV R11, R1			; save x
-	
-	BL distanceSqr
-	BL sqrt
-	LDR R1, =lensn
-	MUL R0, R1, R0
-	LDR R1, =lensq
-	BL divide
-	MOV R9, R1
-	
-	MOV R0, R10
-	MOV R1, R9
-	BL divide
-	SUB R10, R10, R1
-	
-	MOV R0, R11
-	MOV R1, R9
-	BL divide
-	SUB R11, R11, R1
-	
-	BL getPicHeight
-	LSR R0, R0, #1
-	ADD R10, R10, R0
-	
-	BL getPicWidth
-	LSR R0, R0, #1
-	ADD R1, R11, R0
-	
-	MOV R0, R10
-	
-	
-	POP {R2, R3, R9, R10, R11, LR}
-	BX LR
-	
-	
 distanceSqr
-	; R0 = relativex
-	; R1 = relativey
-	
-	; R0 = distance^2
+	; Parameters:
+	; 	R0 = relativex
+	; 	R1 = relativey
+	; Return:
+	; 	R0 = distance^2
 	PUSH {R1, R2}
 	MOV R2, R0
 	MUL R0, R2, R0
@@ -369,7 +465,7 @@ distanceSqr
 	
 	
 	
-	
+;<-------------- Division Method -------------->;
 ; taken from my group work in the labs
 divide											;division loop, leaves Quotient in R1 and Remainder in R0
 	STMFD SP!, {R2, R3, R4, LR}
@@ -387,7 +483,7 @@ divide											;division loop, leaves Quotient in R1 and Remainder in R0
 
 	CMP R1, #0;									;if Divisor == 0
 	LDREQ R0, =-1								;load -1 into remainder
-	MOVEQ R2, #1								;load -1 into quotient
+	MOVEQ R2, R0								;load -1 into quotient
 	BEQ div_zero									;stop
 	
 alignLoop										;else
@@ -398,95 +494,35 @@ alignLoop										;else
 	B alignLoop									;}
 endAlignLoop
 
-THEREVENGEOFTHEALIGNLOOP						;{
+division_whl									;{
 	LSR R1, #1 									;divide divisor by 2
 	LSRS R3, #1									;divide r3 by 2 and set flag
-	BCS THEENDOFTHEREVENGEOFTHEALIGNLOOP		;while carry flag not set{ 
+	BCS end_division_whl						;while carry flag not set{ 
 	CMP R0, R1									;	if(dividend>=divisor):
 	SUBHS R0, R0, R1							;		subtract dividend from divisor
 	ADDHS R2, R2, R3							;		add placeholder to temp quotient
-	B THEREVENGEOFTHEALIGNLOOP					;	
-THEENDOFTHEREVENGEOFTHEALIGNLOOP				; }
+	B division_whl								;	
+end_division_whl								; }
 div_zero
 	MOV R1, R2
-	
 	MUL R1, R4, R1								; quotient *= negative flag
 	LDMFD SP!, {R2, R3, R4, LR}								
 	BX LR							
 	
-
+;<-----------------Main---------------->
+	
 start
-	BL	getPicAddr	; load the start address of the image in R4
-	MOV	R4, R0		; copy destination
-	BL	getPicHeight	; load the height of the image (rows) in R5
-	MOV	R6, R0
-
-copyImage
-	SUB R6, R6, #1
-moveLoopI
-	BL getPicWidth
-	MOVS R7, R0
-	SUB R7, R7, #1
-
-moveLoopJ
-	MOV R0, R6
-	MOV R1, R7
-
-	MOV R2, R4
-	BL getPixel
-	
-	MOV R3, R0
-	MOV R0, R6
-	LDR R2, =copyAddress
-	BL putPixel 
-	
-	SUBS R7, R7, #1
-	BGE moveLoopJ
-endMoveLoopJ
-
-	SUBS R6, R6, #1
-	BGE moveLoopI
-endMoveLoopI
-
-
-	;; //////////////////////////////////////////////////////////////////////////
-	BL	getPicHeight	; load the height of the image (rows) in R5
-	MOV	R6, R0
-	
-	SUB R6, R6, #1
-move2LoopI
-	BL getPicWidth
-	MOVS R7, R0
-	SUB R7, R7, #1
-
-move2LoopJ
-	MOV R0, R6		;
-	MOV R1, R7		;
-	BL applyLens
-	LDR R2, =copyAddress;
-	BL getPixel		;
-		
-	MOV R3, R0
-	MOV R0, R6		;
-	MOV R1, R7		;
-	MOV R2, R4
-	BL putPixel
-
-finaly
-	SUBS R7, R7, #1		; column --
-	BGE move2LoopJ
-endMove2LoopJ
-	BL putPic
-	SUBS R6, R6, #1
-	BGE move2LoopI
-endMove2LoopI
-
-
-
+	LDR R0, =copy
+	BL applyToAll
+	LDR R0, =lensEffectCopy
+	BL applyToAll
+	LDR R0, = applyGreyScale
+	BL applyToAll
 	BL	putPic		; re-display the updated image
 	
 stop	B	stop
 
+;<----------------Memory--------------->
 
 	AREA Variables, DATA, READWRITE
 	

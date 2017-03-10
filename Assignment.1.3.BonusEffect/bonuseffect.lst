@@ -30,614 +30,654 @@ ARM Macro Assembler    Page 1
                        yhalf   EQU              49
    16 00000000 00000001 
                        lensn   EQU              1
-   17 00000000 00000006 
-                       lensq   EQU              6
+   17 00000000 0000000A 
+                       lensq   EQU              10
    18 00000000         
    19 00000000         
-   20 00000000         getPixel                             ; address, RGBval =
+   20 00000000         
+   21 00000000         ;<--------------Pixel Manipulation-------------->
+   22 00000000         getPixel                             ; address, RGBval =
                                                              getPixel(row, col)
                                                             
-   21 00000000         ; Parameters:
-   22 00000000         ; R0 = row
-   23 00000000         ; R1 = column
-   24 00000000         ; R2 = image address
-   25 00000000         ; Stack must be cleared by caller
-   26 00000000         ; Returns:
-   27 00000000         ; R0 = RGBvalue
-   28 00000000 E92D4000        STMFD            SP!, {LR}
-   29 00000004         
-   30 00000004 EB000002        BL               rowColToIndex ; addressOffset =
+   23 00000000         ; Parameters:
+   24 00000000         ; R0 = row
+   25 00000000         ; R1 = column
+   26 00000000         ; R2 = image address
+   27 00000000         ; Stack must be cleared by caller
+   28 00000000         ; Returns:
+   29 00000000         ; R0 = RGBvalue
+   30 00000000 E92D4000        STMFD            SP!, {LR}
+   31 00000004         
+   32 00000004 EB000007        BL               rowColToIndex ; addressOffset =
                                                              rowColToIndex(row,
                                                              col)
-   31 00000008 E7920100        LDR              R0, [R2, R0, LSL #2] ; RGBvalue
+   33 00000008 E7920100        LDR              R0, [R2, R0, LSL #2] ; RGBvalue
                                                              = Memmory.word(pic
                                                             tureaddress + addre
                                                             ssOffset * 4)
-   32 0000000C         
-   33 0000000C E8BD4000        LDMFD            SP!, {LR}
-   34 00000010 E12FFF1E        BX               LR
-   35 00000014         
-   36 00000014         rowColToIndex
-   37 00000014         ; converts row and colum to index
-   38 00000014         ; Parameters
-   39 00000014         ; R0 = row
-   40 00000014         ; R1 = col
-   41 00000014         ; Stack must be cleared by caller
+   34 0000000C         
+   35 0000000C E8BD4000        LDMFD            SP!, {LR}
+   36 00000010 E12FFF1E        BX               LR
+   37 00000014         
+   38 00000014         putPixel
+   39 00000014         ; Stores a given RGB to a pixel at row, col
+   40 00000014         ; Parameters
+   41 00000014         ; R0 = row
 
 
 
 ARM Macro Assembler    Page 2 
 
 
-   42 00000014         ; Return Values
-   43 00000014         ; R0 addressIndex
-   44 00000014 E92D4004        PUSH             {R2, LR}
-   45 00000018 E1A02000        MOV              R2, R0
-   46 0000001C EBFFFFFE        BL               getPicWidth
-   47 00000020 E0201092        MLA              R0, R2, R0, R1 ; addressOffset 
-                                                            = row * width + col
-                                                             
-   48 00000024 E8BD4004        POP              {R2, LR}
-   49 00000028 E12FFF1E        BX               LR
-   50 0000002C         
-   51 0000002C         putPixel
-   52 0000002C         ; Stores a given RGB to a pixel at row, col
-   53 0000002C         ; Parameters
-   54 0000002C         ; R0 = row
-   55 0000002C         ; R1 = col
-   56 0000002C         ; R2 = picture address
-   57 0000002C         ; R3 = RGB
-   58 0000002C         ; Stack must be cleared by caller
-   59 0000002C         
-   60 0000002C E92D4000        STMFD            SP!, {LR}
-   61 00000030         
-   62 00000030 EBFFFFF7        BL               rowColToIndex ; addressOffset =
+   42 00000014         ; R1 = col
+   43 00000014         ; R2 = picture address
+   44 00000014         ; R3 = RGB
+   45 00000014         ; Stack must be cleared by caller
+   46 00000014         
+   47 00000014 E92D4000        STMFD            SP!, {LR}
+   48 00000018         
+   49 00000018 EB000002        BL               rowColToIndex ; addressOffset =
                                                              rowColToIndex(row,
                                                              col)
-   63 00000034 E7823100        STR              R3, [R2, R0, LSL #2] ; Memory.w
+   50 0000001C E7823100        STR              R3, [R2, R0, LSL #2] ; Memory.w
                                                             ord(pictureAddress 
                                                             + addressOffset * 4
                                                             ) = RGB
-   64 00000038         
-   65 00000038 E8BD4000        LDMFD            SP!, {LR}
-   66 0000003C E12FFF1E        BX               LR
-   67 00000040         
-   68 00000040         adjustPixel
-   69 00000040         ; adjustedVal = adjustPixel(value, contrast, brightness)
-                       
-   70 00000040         ; Applies a given contrast and brightness value
-   71 00000040         ; Parameters:
-   72 00000040         ; R0 = RGB
-   73 00000040         ; R2 = contrast   (0 <= contrast) contrast has no effect
-                        at 16
-   74 00000040         ; R3 = brightness
-   75 00000040         
-   76 00000040 E92D400C        STMFD            SP!, {R2, R3, LR} ; save link r
-                                                            egister and pass pa
-                                                            ramters contrast an
-                                                            d brightness
-   77 00000044         
-   78 00000044 E3A018FF        LDR              R1, = redMask ; mask = redMask
-   79 00000048 EB000016        BL               getValueFromMask ; val = getVal
-                                                            ueFromMask(RGB, mas
-                                                            k)
-   80 0000004C EB00000A        BL               adjustColor ; val = adjustColor
-                                                            (val, contrast, bri
-                                                            ghtness)
-   81 00000050 EB00001C        BL               setValueFromMask ; RGB = setVal
-                                                            ueFromMask(RGB, mas
-                                                            k, value)
-   82 00000054         
+   51 00000020         
+   52 00000020 E8BD4000        LDMFD            SP!, {LR}
+   53 00000024 E12FFF1E        BX               LR
+   54 00000028         
+   55 00000028         rowColToIndex
+   56 00000028         ; converts row and colum to index
+   57 00000028         ; Parameters
+   58 00000028         ; R0 = row
+   59 00000028         ; R1 = col
+   60 00000028         ; Stack must be cleared by caller
+   61 00000028         ; Return Values
+   62 00000028         ; R0 addressIndex
+   63 00000028 E92D4004        PUSH             {R2, LR}
+   64 0000002C E1A02000        MOV              R2, R0
+   65 00000030 EBFFFFFE        BL               getPicWidth
+   66 00000034 E0201092        MLA              R0, R2, R0, R1 ; addressOffset 
+                                                            = row * width + col
+                                                             
+   67 00000038 E8BD4004        POP              {R2, LR}
+   68 0000003C E12FFF1E        BX               LR
+   69 00000040         
+   70 00000040         getValueFromMask
+   71 00000040         ; Gets the color value under a congruent mask
+   72 00000040         ; Expects masks of type FF
+   73 00000040         ; eg mask 00FF0000 will return the value under FF in thi
+                       s case the value of red
+   74 00000040         ; Parameters
+   75 00000040         ; R0 = RGB
+   76 00000040         ; R1 = mask
+   77 00000040         ; Return Values
+   78 00000040         ; R1 = mask
+   79 00000040         ; R0 = colorValue
+   80 00000040 E0000001        AND              R0, R0, R1  ; value = RGB & mas
+                                                            k
+   81 00000044 E52D1004        PUSH             {R1}
+   82 00000048         getMaskWhile
+   83 00000048 E1B01221        LSRS             R1, R1, #4  ; while (mask >> 4 
+                                                            doesn't carry)
+   84 0000004C 2A000001        BCS              endGetMaskWhile ; {
+   85 00000050 E1A00220        LSR              R0, R0, #4  ; value >> 4
+   86 00000054 EAFFFFFB        B                getMaskWhile ; }
+   87 00000058         endGetMaskWhile
+   88 00000058 E49D1004        POP              {R1}
+   89 0000005C E12FFF1E        BX               LR
+   90 00000060         
 
 
 
 ARM Macro Assembler    Page 3 
 
 
-   83 00000054 E3A01CFF        LDR              R1, = greenMask
-   84 00000058 EB000012        BL               getValueFromMask
-   85 0000005C EB000006        BL               adjustColor
-   86 00000060 EB000018        BL               setValueFromMask
-   87 00000064         
-   88 00000064 E3A010FF        LDR              R1, = blueMask
-   89 00000068 EB00000E        BL               getValueFromMask
-   90 0000006C EB000002        BL               adjustColor
-   91 00000070 EB000014        BL               setValueFromMask
-   92 00000074         
-   93 00000074 E8BD400C        LDMFD            SP!, {R2, R3, LR}
-   94 00000078 E12FFF1E        BX               LR
-   95 0000007C         
-   96 0000007C         adjustColor
-   97 0000007C         ; val = adjustColor(color, contrast, brightness)
-   98 0000007C         ; applies the brightness contrast formula
-   99 0000007C         ; Paramters:
-  100 0000007C         ; R2 = color
-  101 0000007C         ; Stack > contrast, brightness that order.
-  102 0000007C         ; Return Values
-  103 0000007C         ; R2 = color
-  104 0000007C         ; Stack > contrast, brightness that order.
-  105 0000007C E92D0030        STMFD            SP!, {R4, R5}
-  106 00000080 E59D4008        LDR              R4, [SP, #8] ; contrast = stack
-                                                            .getParameter()
-  107 00000084 E59D500C        LDR              R5, [SP, #12] ; brightness = st
-                                                            ack.getParameter()
-  108 00000088 E0020294        MUL              R2, R4, R2  ; color *= contrast
-                                                            
-  109 0000008C E1A02222        LSR              R2, R2, #4  ; color /= 16
-  110 00000090 E0922005        ADDS             R2, R2, R5  ; color += brightne
-                                                            ss
-  111 00000094 43A02000        LDRMI            R2, =0      ; if (color < 0): c
-                                                            olor = 0
-  112 00000098 E35200FF        CMP              R2, #255    ; else if (color > 
-                                                            255):
-  113 0000009C C3A020FF        LDRGT            R2, =255    ; color = 255
-  114 000000A0 E8BD0030        LDMFD            SP!, {R4, R5} 
-                                                            ; restore pointers
-  115 000000A4 E12FFF1E        BX               LR
-  116 000000A8         
-  117 000000A8         getValueFromMask
-  118 000000A8         ; Gets the color value under a congruent mask
-  119 000000A8         ; Expects masks of type FF
-  120 000000A8         ; eg mask 00FF0000 will return the value under FF in thi
-                       s case the value of red
-  121 000000A8         ; Parameters
-  122 000000A8         ; R0 = RGB
-  123 000000A8         ; R1 = mask
-  124 000000A8         ; Return Values
-  125 000000A8         ; R1 = mask
-  126 000000A8         ; R0 = colorValue
-  127 000000A8 E0000001        AND              R0, R0, R1  ; value = RGB & mas
-                                                            k
-  128 000000AC E52D1004        PUSH             {R1}
-  129 000000B0         getMaskWhile
-  130 000000B0 E1B01221        LSRS             R1, R1, #4  ; while (mask >> 4 
+   91 00000060         setValueFromMask
+   92 00000060         ; Sets the color value under a congruent mask
+   93 00000060         ; Expects masks of type FF
+   94 00000060         ; Takes in a value and a location in form FF
+   95 00000060         ; Parameters
+   96 00000060         ; R0 = RGB
+   97 00000060         ; R1 = mask
+   98 00000060         ; R2 = colorValue
+   99 00000060         ; Return Values
+  100 00000060         ; R0 = RGB
+  101 00000060 E1C00001        BIC              R0, R0, R1  ; RGB = RGB & mask 
+                                                            // remove color
+  102 00000064         setMaskWhile
+  103 00000064 E1B01221        LSRS             R1, R1, #4  ; while (mask >> 4 
                                                             doesn't carry)
-  131 000000B4 2A000001        BCS              endGetMaskWhile ; {
+  104 00000068 2A000001        BCS              endSetMaskWhile ; {
+  105 0000006C E1A02202        LSL              R2, R2, #4  ; value >> 4
+  106 00000070 EAFFFFFB        B                setMaskWhile ; }
+  107 00000074         endSetMaskWhile                      ;
+  108 00000074 E0800002        ADD              R0, R0, R2  ; RGB = RGB + value
+                                                            
+  109 00000078 E12FFF1E        BX               LR
+  110 0000007C         
+  111 0000007C         copy
+  112 0000007C         ; Copies between the original and duplicate image locati
+                       ons
+  113 0000007C         ; Parameters:
+  114 0000007C         ;     R0 = row
+  115 0000007C         ;    R1 = col
+  116 0000007C E92D40CF        PUSH             {R0, R1, R2, R3, R6, R7, LR}
+  117 00000080 E1A06000        MOV              R6, R0
+  118 00000084 E1A07001        MOV              R7, R1
+  119 00000088         
+  120 00000088 EBFFFFFE        BL               getPicAddr
+  121 0000008C E1A02000        MOV              R2, R0
+  122 00000090 E1A00006        MOV              R0, R6
+  123 00000094 E1A01007        MOV              R1, R7
+  124 00000098 EBFFFFD8        BL               getPixel
+  125 0000009C         
+  126 0000009C E1A03000        MOV              R3, R0
+  127 000000A0 E1A00006        MOV              R0, R6
+  128 000000A4 E59F2408        LDR              R2, =copyAddress
+  129 000000A8 EBFFFFD9        BL               putPixel
+  130 000000AC         
+  131 000000AC E8BD40CF        POP              {R0, R1, R2, R3, R6, R7, LR}
+  132 000000B0 E12FFF1E        BX               LR
+  133 000000B4         
+  134 000000B4         lensEffectCopy
+  135 000000B4 E92D40DF        PUSH             {R0, R1, R2, R3, R4, R6, R7, LR
+}
+  136 000000B8 E1A06000        MOV              R6, R0      ;
+  137 000000BC E1A07001        MOV              R7, R1      ;
+  138 000000C0         
+  139 000000C0 EBFFFFFE        BL               getPicAddr
+  140 000000C4 E1A04000        MOV              R4, R0
+  141 000000C8         
+  142 000000C8 E1A00006        MOV              R0, R6      ;
+  143 000000CC         
+  144 000000CC EB00008F        BL               applyLens
 
 
 
 ARM Macro Assembler    Page 4 
 
 
-  132 000000B8 E1A00220        LSR              R0, R0, #4  ; value >> 4
-  133 000000BC EAFFFFFB        B                getMaskWhile ; }
-  134 000000C0         endGetMaskWhile
-  135 000000C0 E49D1004        POP              {R1}
-  136 000000C4 E12FFF1E        BX               LR
-  137 000000C8         
-  138 000000C8         setValueFromMask
-  139 000000C8         ; Sets the color value under a congruent mask
-  140 000000C8         ; Expects masks of type FF
-  141 000000C8         ; Takes in a value and a location in form FF
-  142 000000C8         ; Parameters
-  143 000000C8         ; R0 = RGB
-  144 000000C8         ; R1 = mask
-  145 000000C8         ; R2 = colorValue
-  146 000000C8         ; Return Values
-  147 000000C8         ; R0 = RGB
-  148 000000C8 E1C00001        BIC              R0, R0, R1  ; RGB = RGB & mask 
-                                                            // remove color
-  149 000000CC         setMaskWhile
-  150 000000CC E1B01221        LSRS             R1, R1, #4  ; while (mask >> 4 
-                                                            doesn't carry)
-  151 000000D0 2A000001        BCS              endSetMaskWhile ; {
-  152 000000D4 E1A02202        LSL              R2, R2, #4  ; value >> 4
-  153 000000D8 EAFFFFFB        B                setMaskWhile ; }
-  154 000000DC         endSetMaskWhile                      ;
-  155 000000DC E0800002        ADD              R0, R0, R2  ; RGB = RGB + value
-                                                            
-  156 000000E0 E12FFF1E        BX               LR
-  157 000000E4         
-  158 000000E4         averageN
-  159 000000E4         ; Takes in five RGB values and computes their blur value
-                       .
-  160 000000E4         ; Parameters:
-  161 000000E4         ; Stack > RGB value count    | 0 < count
-  162 000000E4         ; Stack > count RGB values
-  163 000000E4         ; Returns:
-  164 000000E4         ; R0 = average
-  165 000000E4         
-  166 000000E4 E89D0001        LDMFD            SP, {R0}
-  167 000000E8 E92D407E        STMFD            SP!, {R1 - R6, LR}
-  168 000000EC E3A04007        LDR              R4, =7
-  169 000000F0 E1A03000        MOV              R3, R0
-  170 000000F4 E0845003        ADD              R5, R4, R3
-  171 000000F8 E3A06000        LDR              R6, =0
-  172 000000FC E3A02000        LDR              R2, =0
-  173 00000100 E3A018FF        LDR              R1, =redMask
-  174 00000104 EB000006        BL               averageColor
-  175 00000108 E3A01CFF        LDR              R1, =greenMask
-  176 0000010C EB000004        BL               averageColor
-  177 00000110 E3A010FF        LDR              R1, =blueMask
-  178 00000114 EB000002        BL               averageColor
-  179 00000118 E1A00006        MOV              R0, R6
-  180 0000011C E8BD407E        LDMFD            SP!, {R1 - R6, LR}
-  181 00000120 E12FFF1E        BX               LR
-  182 00000124         
-  183 00000124         averageColor
-  184 00000124         forN
-  185 00000124 E1550004        CMP              R5, R4
-  186 00000128 0A000006        BEQ              endForN
+  145 000000D0 E59F23DC        LDR              R2, =copyAddress ;
+  146 000000D4 EBFFFFC9        BL               getPixel    ;
+  147 000000D8         
+  148 000000D8 E1A03000        MOV              R3, R0
+  149 000000DC E1A00006        MOV              R0, R6      ;
+  150 000000E0 E1A01007        MOV              R1, R7      ;
+  151 000000E4 E1A02004        MOV              R2, R4
+  152 000000E8 EBFFFFC9        BL               putPixel
+  153 000000EC         
+  154 000000EC E8BD40DF        POP              {R0, R1, R2, R3, R4, R6, R7, LR
+}
+  155 000000F0 E12FFF1E        BX               LR
+  156 000000F4         
+  157 000000F4         applyGreyScale
+  158 000000F4         ; Wrapper to apply greyscale to original
+  159 000000F4         ; Parameters:
+  160 000000F4         ;    R0 = row
+  161 000000F4         ;    R1 = col
+  162 000000F4 E92D401F        PUSH             {R0, R1, R2, R3, R4, LR}
+  163 000000F8 E1A04000        MOV              R4, R0
+  164 000000FC EBFFFFFE        BL               getPicAddr
+  165 00000100 E1A02000        MOV              R2, R0
+  166 00000104 E1A00003        MOV              R0, R3
+  167 00000108 EBFFFFBC        BL               getPixel
+  168 0000010C EB00005E        BL               greyScale
+  169 00000110 E1A03000        MOV              R3, R0
+  170 00000114 E1A00004        MOV              R0, R4
+  171 00000118 EBFFFFBD        BL               putPixel
+  172 0000011C E8BD401F        POP              {R0, R1, R2, R3, R4, LR}
+  173 00000120 E12FFF1E        BX               LR
+  174 00000124         
+  175 00000124         applyToAll
+  176 00000124         ; Loops through all (row, col) combinations and executes
+                        the given subroutine.
+  177 00000124         ; Paramenters:
+  178 00000124         ;  R0 = routine address
+  179 00000124 E92D400F        PUSH             {R0, R1, R2, R3, LR}
+  180 00000128 E1A02000        MOV              R2, R0
+  181 0000012C EBFFFFFE        BL               getPicWidth
+  182 00000130 E1A01000        MOV              R1, R0
+  183 00000134 EBFFFFFE        BL               getPicHeight
+  184 00000138         
+  185 00000138 E2400001        SUB              R0, R0, #1
+  186 0000013C         row_whl
+  187 0000013C E1A03000        MOV              R3, R0
+  188 00000140 EBFFFFFE        BL               getPicWidth
+  189 00000144 E1A01000        MOV              R1, R0
+  190 00000148 E1A00003        MOV              R0, R3
+  191 0000014C E2411001        SUB              R1, R1, #1
+  192 00000150         col_whl
+  193 00000150 E1A0E00F        MOV              LR, PC
+  194 00000154 E12FFF12        BX               R2
+  195 00000158 E2511001        SUBS             R1, R1, #1
+  196 0000015C AAFFFFFB        BGE              col_whl
+  197 00000160         end_col_whl
+  198 00000160 E2500001        SUBS             R0, R0, #1
+  199 00000164 AAFFFFF4        BGE              row_whl
+  200 00000168         end_row_whl
+  201 00000168 E8BD400F        POP              {R0, R1, R2, R3, LR}
 
 
 
 ARM Macro Assembler    Page 5 
 
 
-  187 0000012C E79D0105        LDR              R0, [SP, R5, LSL #2]
-  188 00000130 E52DE004        PUSH             {LR}
-  189 00000134 EBFFFFDB        BL               getValueFromMask
-  190 00000138 E49DE004        POP              {LR}
-  191 0000013C E0822000        ADD              R2, R2, R0
-  192 00000140 E2555001        SUBS             R5, R5, #1
-  193 00000144 EAFFFFF6        B                forN
-  194 00000148         endForN
-  195 00000148 E52D1004        PUSH             {R1}
-  196 0000014C E1A00002        MOV              R0, R2
-  197 00000150 E1A01003        MOV              R1, R3
-  198 00000154 E52DE004        PUSH             {LR}
-  199 00000158 EB00006F        BL               divide
-  200 0000015C E49DE004        POP              {LR}
-  201 00000160 E3510000        CMP              R1, #0
-  202 00000164 43A01000        LDRMI            R1, =0
-  203 00000168 E35100FF        CMP              R1, #255
-  204 0000016C C3A010FF        LDRGT            R1, =255
-  205 00000170 E1A00006        MOV              R0, R6
-  206 00000174 E1A02001        MOV              R2, R1
-  207 00000178 E49D1004        POP              {R1}
-  208 0000017C E52DE004        PUSH             {LR}
-  209 00000180 EBFFFFD0        BL               setValueFromMask
-  210 00000184 E49DE004        POP              {LR}
-  211 00000188 E1A06000        MOV              R6, R0
-  212 0000018C E3A02000        LDR              R2, =0
-  213 00000190 E0845003        ADD              R5, R4, R3
-  214 00000194 E12FFF1E        BX               LR
-  215 00000198         
-  216 00000198         greyScale
-  217 00000198         ; Converts a pixel to a light intensity value.
-  218 00000198         ; Paramteters
-  219 00000198         ;    R0 = RGB
-  220 00000198         ; Return
-  221 00000198         ;    R0 = Light intesity
-  222 00000198 E92D401E        PUSH             {R1, R2, R3, R4, LR}
-  223 0000019C E1A02000        MOV              R2, R0
-  224 000001A0 E3A03000        LDR              R3, =0
-  225 000001A4         
-  226 000001A4 E3A018FF        LDR              R1, =redMask
-  227 000001A8 EBFFFFBE        BL               getValueFromMask
-  228 000001AC E59FC28C        LDR              R12, =299
-  229 000001B0 E1A01000        MOV              R1, R0
-  230 000001B4 E0000C91        MUL              R0, R1, R12
-  231 000001B8 E0833000        ADD              R3, R3, R0
-  232 000001BC         
-  233 000001BC E1A00002        MOV              R0, R2
-  234 000001C0 E3A01CFF        LDR              R1, =greenMask
-  235 000001C4 EBFFFFB7        BL               getValueFromMask
-  236 000001C8 E59FC274        LDR              R12, =587
-  237 000001CC E1A01000        MOV              R1, R0
-  238 000001D0 E0000C91        MUL              R0, R1, R12
-  239 000001D4 E0833000        ADD              R3, R3, R0
-  240 000001D8         
-  241 000001D8 E1A00002        MOV              R0, R2
-  242 000001DC E3A010FF        LDR              R1, =blueMask
-  243 000001E0 EBFFFFB0        BL               getValueFromMask
-  244 000001E4 E3A0C072        LDR              R12, =114
-  245 000001E8 E1A01000        MOV              R1, R0
+  202 0000016C E12FFF1E        BX               LR
+  203 00000170         
+  204 00000170         ;<--------------Effects-------------->
+  205 00000170         
+  206 00000170         adjustPixel
+  207 00000170         ; adjustedVal = adjustPixel(value, contrast, brightness)
+                       
+  208 00000170         ; Applies a given contrast and brightness value
+  209 00000170         ; Parameters:
+  210 00000170         ; R0 = RGB
+  211 00000170         ; R2 = contrast   (0 <= contrast) contrast has no effect
+                        at 16
+  212 00000170         ; R3 = brightness
+  213 00000170         
+  214 00000170 E92D400C        STMFD            SP!, {R2, R3, LR} ; save link r
+                                                            egister and pass pa
+                                                            ramters contrast an
+                                                            d brightness
+  215 00000174         
+  216 00000174 E3A018FF        LDR              R1, = redMask ; mask = redMask
+  217 00000178 EBFFFFB0        BL               getValueFromMask ; val = getVal
+                                                            ueFromMask(RGB, mas
+                                                            k)
+  218 0000017C EB00000A        BL               adjustColor ; val = adjustColor
+                                                            (val, contrast, bri
+                                                            ghtness)
+  219 00000180 EBFFFFB6        BL               setValueFromMask ; RGB = setVal
+                                                            ueFromMask(RGB, mas
+                                                            k, value)
+  220 00000184         
+  221 00000184 E3A01CFF        LDR              R1, = greenMask
+  222 00000188 EBFFFFAC        BL               getValueFromMask
+  223 0000018C EB000006        BL               adjustColor
+  224 00000190 EBFFFFB2        BL               setValueFromMask
+  225 00000194         
+  226 00000194 E3A010FF        LDR              R1, = blueMask
+  227 00000198 EBFFFFA8        BL               getValueFromMask
+  228 0000019C EB000002        BL               adjustColor
+  229 000001A0 EBFFFFAE        BL               setValueFromMask
+  230 000001A4         
+  231 000001A4 E8BD400C        LDMFD            SP!, {R2, R3, LR}
+  232 000001A8 E12FFF1E        BX               LR
+  233 000001AC         
+  234 000001AC         adjustColor
+  235 000001AC         ; val = adjustColor(color, contrast, brightness)
+  236 000001AC         ; applies the brightness contrast formula
+  237 000001AC         ; Paramters:
+  238 000001AC         ; R2 = color
+  239 000001AC         ; Stack > contrast, brightness that order.
+  240 000001AC         ; Return Values
+  241 000001AC         ; R2 = color
+  242 000001AC         ; Stack > contrast, brightness that order.
+  243 000001AC E92D0030        STMFD            SP!, {R4, R5}
+  244 000001B0 E59D4008        LDR              R4, [SP, #8] ; contrast = stack
+                                                            .getParameter()
+  245 000001B4 E59D500C        LDR              R5, [SP, #12] ; brightness = st
+                                                            ack.getParameter()
+  246 000001B8 E0020294        MUL              R2, R4, R2  ; color *= contrast
+                                                            
 
 
 
 ARM Macro Assembler    Page 6 
 
 
-  246 000001EC E0000C91        MUL              R0, R1, R12
-  247 000001F0 E0833000        ADD              R3, R3, R0
-  248 000001F4         
-  249 000001F4 E1A00003        MOV              R0, R3
-  250 000001F8 E3A01FFA        LDR              R1, =1000
-  251 000001FC EB000046        BL               divide
-  252 00000200         
-  253 00000200 E1A00001        MOV              R0, R1
-  254 00000204 E1A01400        LSL              R1, R0, #8
-  255 00000208 E0811000        ADD              R1, R1, R0
-  256 0000020C E1A01401        LSL              R1, R1, #8
-  257 00000210 E0800001        ADD              R0, R0, R1
-  258 00000214         
-  259 00000214 E8BD401E        POP              {R1, R2, R3, R4, LR}
-  260 00000218 E12FFF1E        BX               LR
-  261 0000021C         
-  262 0000021C         
-  263 0000021C         
-  264 0000021C         applyFuncToAll
-  265 0000021C         ; applies a passed subroutine for every pixel
-  266 0000021C         
-  267 0000021C         sqrt
-  268 0000021C         ; Finds the square root of a number
-  269 0000021C         ; Parameters:
-  270 0000021C         ;  R0 = number
-  271 0000021C         ; Outputs:
-  272 0000021C         ;  R0 = sqare root
-  273 0000021C E3500001        CMP              R0, #1      ; if the number is 
-                                                            one return one
-  274 00000220 012FFF1E        BXEQ             LR
-  275 00000224         
-  276 00000224 E92D481E        PUSH             {R1, R2, R3, R4, R11, LR}
-  277 00000228 E1A0B000        MOV              R11, R0     ; save number
-  278 0000022C E3A03000        LDR              R3, =0      ; temp = 0
-  279 00000230 E1A02000        MOV              R2, R0      ; x = S
-  280 00000234         
-  281 00000234         find_sqr_whl
-  282 00000234 E1A020A2        LSR              R2, R2, #1  ; x /= 2
-  283 00000238 E0524003        SUBS             R4, R2, R3
-  284 0000023C 0A000007        BEQ              end_sqr_whl ; return x
-  285 00000240 E3540001        CMP              R4, #1
-  286 00000244 0A000005        BEQ              end_sqr_whl
-  287 00000248 E1A03002        MOV              R3, R2      ; else: temp = x
-  288 0000024C E1A01002        MOV              R1, R2      ; 
-  289 00000250 E1A0000B        MOV              R0, R11     ;
-  290 00000254 EB000030        BL               divide      ; 
-  291 00000258 E0822001        ADD              R2, R2, R1  ;  x = x + divide(n
-                                                            umber, x)
-  292 0000025C EAFFFFF4        B                find_sqr_whl
-  293 00000260         end_sqr_whl
-  294 00000260         
-  295 00000260 E1A00002        MOV              R0, R2
-  296 00000264 E8BD481E        POP              {R1, R2, R3, R4, R11, LR}
-  297 00000268 E12FFF1E        BX               LR
-  298 0000026C         
-  299 0000026C         
-  300 0000026C         applyLens
-  301 0000026C         ; R0 = y
-  302 0000026C         ; R1 = X
+  247 000001BC E1A02222        LSR              R2, R2, #4  ; color /= 16
+  248 000001C0 E0922005        ADDS             R2, R2, R5  ; color += brightne
+                                                            ss
+  249 000001C4 43A02000        LDRMI            R2, =0      ; if (color < 0): c
+                                                            olor = 0
+  250 000001C8 E35200FF        CMP              R2, #255    ; else if (color > 
+                                                            255):
+  251 000001CC C3A020FF        LDRGT            R2, =255    ; color = 255
+  252 000001D0 E8BD0030        LDMFD            SP!, {R4, R5} 
+                                                            ; restore pointers
+  253 000001D4 E12FFF1E        BX               LR
+  254 000001D8         
+  255 000001D8         averageN
+  256 000001D8         ; Takes in five RGB values and computes their blur value
+                       .
+  257 000001D8         ; Parameters:
+  258 000001D8         ; Stack > RGB value count    | 0 < count
+  259 000001D8         ; Stack > count RGB values
+  260 000001D8         ; Returns:
+  261 000001D8         ; R0 = average
+  262 000001D8         
+  263 000001D8 E89D0001        LDMFD            SP, {R0}
+  264 000001DC E92D407E        STMFD            SP!, {R1 - R6, LR}
+  265 000001E0 E3A04007        LDR              R4, =7
+  266 000001E4 E1A03000        MOV              R3, R0
+  267 000001E8 E0845003        ADD              R5, R4, R3
+  268 000001EC E3A06000        LDR              R6, =0
+  269 000001F0 E3A02000        LDR              R2, =0
+  270 000001F4 E3A018FF        LDR              R1, =redMask
+  271 000001F8 EB000006        BL               averageColor
+  272 000001FC E3A01CFF        LDR              R1, =greenMask
+  273 00000200 EB000004        BL               averageColor
+  274 00000204 E3A010FF        LDR              R1, =blueMask
+  275 00000208 EB000002        BL               averageColor
+  276 0000020C E1A00006        MOV              R0, R6
+  277 00000210 E8BD407E        LDMFD            SP!, {R1 - R6, LR}
+  278 00000214 E12FFF1E        BX               LR
+  279 00000218         averageColor
+  280 00000218         forN
+  281 00000218 E1550004        CMP              R5, R4
+  282 0000021C 0A000006        BEQ              endForN
+  283 00000220 E79D0105        LDR              R0, [SP, R5, LSL #2]
+  284 00000224 E52DE004        PUSH             {LR}
+  285 00000228 EBFFFF84        BL               getValueFromMask
+  286 0000022C E49DE004        POP              {LR}
+  287 00000230 E0822000        ADD              R2, R2, R0
+  288 00000234 E2555001        SUBS             R5, R5, #1
+  289 00000238 EAFFFFF6        B                forN
+  290 0000023C         endForN
+  291 0000023C E52D1004        PUSH             {R1}
+  292 00000240 E1A00002        MOV              R0, R2
+  293 00000244 E1A01003        MOV              R1, R3
+  294 00000248 E52DE004        PUSH             {LR}
+  295 0000024C EB000072        BL               divide
+  296 00000250 E49DE004        POP              {LR}
+  297 00000254 E3510000        CMP              R1, #0
+  298 00000258 43A01000        LDRMI            R1, =0
+  299 0000025C E35100FF        CMP              R1, #255
+  300 00000260 C3A010FF        LDRGT            R1, =255
 
 
 
 ARM Macro Assembler    Page 7 
 
 
-  303 0000026C         
-  304 0000026C         normalize_origin
-  305 0000026C E92D4E0F        PUSH             {r0, r1, R2, R3, R9, R10, R11, 
-LR}
-  306 00000270         
-  307 00000270 EBFFFFFE        BL               getPicHeight
-  308 00000274 E1A000A0        LSR              R0, R0, #1
-  309 00000278 E1A02000        MOV              R2, R0
-  310 0000027C         
-  311 0000027C EBFFFFFE        BL               getPicWidth
-  312 00000280 E1A000A0        LSR              R0, R0, #1
-  313 00000284 E1A03000        MOV              R3, R0
-  314 00000288         
-  315 00000288 E8BD0003        POP              {r0, r1}
-  316 0000028C         
-  317 0000028C E0400002        SUB              R0, R0, R2  ; y -= centery
-  318 00000290 E0411003        SUB              R1, R1, R3  ; x -= centery
-  319 00000294         
-  320 00000294 E1A0A000        MOV              R10, R0     ; save y
-  321 00000298 E1A0B001        MOV              R11, R1     ; save x
-  322 0000029C         
-  323 0000029C EB000016        BL               distanceSqr
-  324 000002A0 EBFFFFDD        BL               sqrt
-  325 000002A4 E3A01001        LDR              R1, =lensn
-  326 000002A8 E0000091        MUL              R0, R1, R0
-  327 000002AC E3A01006        LDR              R1, =lensq
-  328 000002B0 EB000019        BL               divide
-  329 000002B4 E1A09001        MOV              R9, R1
-  330 000002B8         
-  331 000002B8 E1A0000A        MOV              R0, R10
-  332 000002BC E1A01009        MOV              R1, R9
-  333 000002C0 EB000015        BL               divide
-  334 000002C4 E04AA001        SUB              R10, R10, R1
-  335 000002C8         
-  336 000002C8 E1A0000B        MOV              R0, R11
-  337 000002CC E1A01009        MOV              R1, R9
-  338 000002D0 EB000011        BL               divide
-  339 000002D4 E04BB001        SUB              R11, R11, R1
-  340 000002D8         
-  341 000002D8 EBFFFFFE        BL               getPicHeight
-  342 000002DC E1A000A0        LSR              R0, R0, #1
-  343 000002E0 E08AA000        ADD              R10, R10, R0
-  344 000002E4         
-  345 000002E4 EBFFFFFE        BL               getPicWidth
-  346 000002E8 E1A000A0        LSR              R0, R0, #1
-  347 000002EC E08B1000        ADD              R1, R11, R0
-  348 000002F0         
-  349 000002F0 E1A0000A        MOV              R0, R10
-  350 000002F4         
-  351 000002F4         
-  352 000002F4 E8BD4E0C        POP              {R2, R3, R9, R10, R11, LR}
-  353 000002F8 E12FFF1E        BX               LR
-  354 000002FC         
-  355 000002FC         
-  356 000002FC         distanceSqr
-  357 000002FC         ; R0 = relativex
-  358 000002FC         ; R1 = relativey
-  359 000002FC         
-  360 000002FC         ; R0 = distance^2
+  301 00000264 E1A00006        MOV              R0, R6
+  302 00000268 E1A02001        MOV              R2, R1
+  303 0000026C E49D1004        POP              {R1}
+  304 00000270 E52DE004        PUSH             {LR}
+  305 00000274 EBFFFF79        BL               setValueFromMask
+  306 00000278 E49DE004        POP              {LR}
+  307 0000027C E1A06000        MOV              R6, R0
+  308 00000280 E3A02000        LDR              R2, =0
+  309 00000284 E0845003        ADD              R5, R4, R3
+  310 00000288 E12FFF1E        BX               LR
+  311 0000028C         
+  312 0000028C         greyScale
+  313 0000028C         ; Converts a pixel to a light intensity value.
+  314 0000028C         ; Paramteters
+  315 0000028C         ;    R0 = RGB
+  316 0000028C         ; Return
+  317 0000028C         ;    R0 = Light intesity
+  318 0000028C E92D401E        PUSH             {R1, R2, R3, R4, LR}
+  319 00000290 E1A02000        MOV              R2, R0
+  320 00000294 E3A03000        LDR              R3, =0
+  321 00000298         
+  322 00000298 E3A018FF        LDR              R1, =redMask
+  323 0000029C EBFFFF67        BL               getValueFromMask
+  324 000002A0 E59FC210        LDR              R12, =299
+  325 000002A4 E1A01000        MOV              R1, R0
+  326 000002A8 E0000C91        MUL              R0, R1, R12
+  327 000002AC E0833000        ADD              R3, R3, R0
+  328 000002B0         
+  329 000002B0 E1A00002        MOV              R0, R2
+  330 000002B4 E3A01CFF        LDR              R1, =greenMask
+  331 000002B8 EBFFFF60        BL               getValueFromMask
+  332 000002BC E59FC1F8        LDR              R12, =587
+  333 000002C0 E1A01000        MOV              R1, R0
+  334 000002C4 E0000C91        MUL              R0, R1, R12
+  335 000002C8 E0833000        ADD              R3, R3, R0
+  336 000002CC         
+  337 000002CC E1A00002        MOV              R0, R2
+  338 000002D0 E3A010FF        LDR              R1, =blueMask
+  339 000002D4 EBFFFF59        BL               getValueFromMask
+  340 000002D8 E3A0C072        LDR              R12, =114
+  341 000002DC E1A01000        MOV              R1, R0
+  342 000002E0 E0000C91        MUL              R0, R1, R12
+  343 000002E4 E0833000        ADD              R3, R3, R0
+  344 000002E8         
+  345 000002E8 E1A00003        MOV              R0, R3
+  346 000002EC E3A01FFA        LDR              R1, =1000
+  347 000002F0 EB000049        BL               divide
+  348 000002F4         
+  349 000002F4 E1A00001        MOV              R0, R1
+  350 000002F8 E1A01400        LSL              R1, R0, #8
+  351 000002FC E0811000        ADD              R1, R1, R0
+  352 00000300 E1A01401        LSL              R1, R1, #8
+  353 00000304 E0800001        ADD              R0, R0, R1
+  354 00000308         
+  355 00000308 E8BD401E        POP              {R1, R2, R3, R4, LR}
+  356 0000030C E12FFF1E        BX               LR
+  357 00000310         
+  358 00000310         applyLens
+  359 00000310         ; R0 = y
 
 
 
 ARM Macro Assembler    Page 8 
 
 
-  361 000002FC E92D0006        PUSH             {R1, R2}
-  362 00000300 E1A02000        MOV              R2, R0
-  363 00000304 E0000092        MUL              R0, R2, R0
-  364 00000308 E1A02001        MOV              R2, R1
-  365 0000030C E0010192        MUL              R1, R2, R1
-  366 00000310 E0800001        ADD              R0, R0, R1
-  367 00000314 E8BD0006        POP              {R1, R2}
-  368 00000318 E12FFF1E        BX               LR
-  369 0000031C         
-  370 0000031C         
-  371 0000031C         
-  372 0000031C         
-  373 0000031C         ; taken from my group work in the labs
-  374 0000031C         divide                               ;division loop, lea
-                                                            ves Quotient in R1 
-                                                            and Remainder in R0
-                                                            
-  375 0000031C E92D401C        STMFD            SP!, {R2, R3, R4, LR}
-  376 00000320         
-  377 00000320 E3A04001        LDR              R4, =1      ;negative flag
-  378 00000324 E3500000        CMP              R0, #0      ;if dividend < 0
-  379 00000328 42644000        NEGMI            R4, R4      ; flag *= -1
-  380 0000032C 42600000        NEGMI            R0, R0      ; dividend *= -1
-  381 00000330 E3510000        CMP              R1, #0      ; if divisor < 0
-  382 00000334 42644000        NEGMI            R4, R4      ; flag *= -1
-  383 00000338 42611000        NEGMI            R1, R1      ; divisor *= -1
-  384 0000033C         
-  385 0000033C E3A02000        LDR              R2, =0      ; Q        ;set tem
-                                                            p quotient to 0
-  386 00000340 E3A03001        LDR              R3, =1      ; T        ;set pla
-                                                            ceholder to 1
-  387 00000344         
-  388 00000344 E3510000        CMP              R1, #0      ;         ;if Divis
-                                                            or == 0
-  389 00000348 059F00F8        LDREQ            R0, =-1     ;load -1 into remai
-                                                            nder
-  390 0000034C 03A02001        MOVEQ            R2, #1      ;load -1 into quoti
-                                                            ent
-  391 00000350 0A00000B        BEQ              div_zero    ;stop
-  392 00000354         
-  393 00000354         alignLoop                            ;else
-  394 00000354 E1500001        CMP              R0, R1      ;while dividend>div
-                                                            isor
-  395 00000358 BA000002        BLT              endAlignLoop ;{
-  396 0000035C E1A01081        LSL              R1, #1      ; multiply divisor 
-                                                            by 2
-  397 00000360 E1A03083        LSL              R3, #1      ; multiply placehol
-                                                            der by 2
-  398 00000364 EAFFFFFA        B                alignLoop   ;}
-  399 00000368         endAlignLoop
-  400 00000368         
-  401 00000368         THEREVENGEOFTHEALIGNLOOP             ;{
-  402 00000368 E1A010A1        LSR              R1, #1      ;divide divisor by 
-                                                            2
-  403 0000036C E1B030A3        LSRS             R3, #1      ;divide r3 by 2 and
-                                                             set flag
-  404 00000370 2A000003        BCS              THEENDOFTHEREVENGEOFTHEALIGNLOO
-P 
-                                                            ;while carry flag n
+  360 00000310         ; R1 = X
+  361 00000310         
+  362 00000310         normalize_origin
+  363 00000310 E92D4E1F        PUSH             {r0, r1, R2, R3, R4, R9, R10, R
+11, LR}
+  364 00000314         
+  365 00000314 E3A0400A        LDR              R4, =lensq
+  366 00000318 EBFFFFFE        BL               getPicHeight
+  367 0000031C E1A000A0        LSR              R0, R0, #1
+  368 00000320 E1A02000        MOV              R2, R0
+  369 00000324         
+  370 00000324 EBFFFFFE        BL               getPicWidth
+  371 00000328 E1A000A0        LSR              R0, R0, #1
+  372 0000032C E1A03000        MOV              R3, R0
+  373 00000330         
+  374 00000330 E8BD0003        POP              {r0, r1}
+  375 00000334         
+  376 00000334 E0400002        SUB              R0, R0, R2  ; y -= centery
+  377 00000338 E0411003        SUB              R1, R1, R3  ; x -= centery
+  378 0000033C         
+  379 0000033C E1A0A000        MOV              R10, R0     ; save y
+  380 00000340 E1A0B001        MOV              R11, R1     ; save x
+  381 00000344         
+  382 00000344 EB00002C        BL               distanceSqr
+  383 00000348 EB000017        BL               sqrt
+  384 0000034C E1A09000        MOV              R9, R0
+  385 00000350         
+  386 00000350 E1A0000A        MOV              R0, R10
+  387 00000354 E1540009        CMP              R4, R9
+  388 00000358 B0000094        MULLT            R0, R4, R0
+  389 0000035C A0000099        MULGE            R0, R9, R0
+  390 00000360 E1A01009        MOV              R1, R9
+  391 00000364 EB00002C        BL               divide
+  392 00000368 E04AA001        SUB              R10, R10, R1
+  393 0000036C         
+  394 0000036C E1A0000B        MOV              R0, R11
+  395 00000370 E1540009        CMP              R4, R9
+  396 00000374 B0000094        MULLT            R0, R4, R0
+  397 00000378 A0000099        MULGE            R0, R9, R0
+  398 0000037C E1A01009        MOV              R1, R9
+  399 00000380 EB000025        BL               divide
+  400 00000384 E04BB001        SUB              R11, R11, R1
+  401 00000388         
+  402 00000388 EBFFFFFE        BL               getPicHeight
+  403 0000038C E1A000A0        LSR              R0, R0, #1
+  404 00000390 E08AA000        ADD              R10, R10, R0
+  405 00000394         
+  406 00000394 EBFFFFFE        BL               getPicWidth
+  407 00000398 E1A000A0        LSR              R0, R0, #1
+  408 0000039C E08B1000        ADD              R1, R11, R0
+  409 000003A0         
+  410 000003A0 E1A0000A        MOV              R0, R10
+  411 000003A4         
+  412 000003A4         
+  413 000003A4 E8BD4E1C        POP              {R2, R3, R4, R9, R10, R11, LR}
+  414 000003A8 E12FFF1E        BX               LR
+  415 000003AC         
+  416 000003AC         
+  417 000003AC         ;<---------------Square root methods---------------->
 
 
 
 ARM Macro Assembler    Page 9 
 
 
-                                                            ot set{ 
-  405 00000374 E1500001        CMP              R0, R1      ; if(dividend>=divi
-                                                            sor):
-  406 00000378 20400001        SUBHS            R0, R0, R1  ;  subtract dividen
-                                                            d from divisor
-  407 0000037C 20822003        ADDHS            R2, R2, R3  ;  add placeholder 
-                                                            to temp quotient
-  408 00000380 EAFFFFF8        B                THEREVENGEOFTHEALIGNLOOP ; 
-  409 00000384         THEENDOFTHEREVENGEOFTHEALIGNLOOP     ; }
-  410 00000384         div_zero
-  411 00000384 E1A01002        MOV              R1, R2
-  412 00000388         
-  413 00000388 E0010194        MUL              R1, R4, R1  ; quotient *= negat
-                                                            ive flag
-  414 0000038C E8BD401C        LDMFD            SP!, {R2, R3, R4, LR}
-  415 00000390 E12FFF1E        BX               LR
-  416 00000394         
-  417 00000394         
-  418 00000394         start
-  419 00000394 EBFFFFFE        BL               getPicAddr  ; load the start ad
-                                                            dress of the image 
-                                                            in R4
-  420 00000398 E1A04000        MOV              R4, R0      ; copy destination
-  421 0000039C EBFFFFFE        BL               getPicHeight ; load the height 
-                                                            of the image (rows)
-                                                             in R5
-  422 000003A0 E1A06000        MOV              R6, R0
-  423 000003A4         
-  424 000003A4         copyImage
-  425 000003A4 E2466001        SUB              R6, R6, #1
-  426 000003A8         moveLoopI
-  427 000003A8 EBFFFFFE        BL               getPicWidth
-  428 000003AC E1B07000        MOVS             R7, R0
-  429 000003B0 E2477001        SUB              R7, R7, #1
-  430 000003B4         
-  431 000003B4         moveLoopJ
-  432 000003B4 E1A00006        MOV              R0, R6
-  433 000003B8 E1A01007        MOV              R1, R7
-  434 000003BC         
-  435 000003BC E1A02004        MOV              R2, R4
-  436 000003C0 EBFFFF0E        BL               getPixel
-  437 000003C4         
-  438 000003C4 E1A03000        MOV              R3, R0
-  439 000003C8 E1A00006        MOV              R0, R6
-  440 000003CC E59F2078        LDR              R2, =copyAddress
-  441 000003D0 EBFFFF15        BL               putPixel
-  442 000003D4         
-  443 000003D4 E2577001        SUBS             R7, R7, #1
-  444 000003D8 AAFFFFF5        BGE              moveLoopJ
-  445 000003DC         endMoveLoopJ
-  446 000003DC         
-  447 000003DC E2566001        SUBS             R6, R6, #1
-  448 000003E0 AAFFFFF0        BGE              moveLoopI
-  449 000003E4         endMoveLoopI
-  450 000003E4         
-  451 000003E4         
-  452 000003E4         ;; /////////////////////////////////////////////////////
-                       /////////////////////
-  453 000003E4 EBFFFFFE        BL               getPicHeight ; load the height 
+  418 000003AC         
+  419 000003AC         sqrt
+  420 000003AC         ; Finds the square root of a number
+  421 000003AC         ; Parameters:
+  422 000003AC         ;  R0 = number
+  423 000003AC         ; Outputs:
+  424 000003AC         ;  R0 = sqare root
+  425 000003AC E3500001        CMP              R0, #1      ; if the number is 
+                                                            one return one
+  426 000003B0 012FFF1E        BXEQ             LR
+  427 000003B4         
+  428 000003B4 E92D481E        PUSH             {R1, R2, R3, R4, R11, LR}
+  429 000003B8 E1A0B000        MOV              R11, R0     ; save number
+  430 000003BC E3A03000        LDR              R3, =0      ; temp = 0
+  431 000003C0 E1A02000        MOV              R2, R0      ; x = S
+  432 000003C4         
+  433 000003C4         find_sqr_whl
+  434 000003C4 E1A020A2        LSR              R2, R2, #1  ; x /= 2
+  435 000003C8 E0524003        SUBS             R4, R2, R3
+  436 000003CC 0A000007        BEQ              end_sqr_whl ; return x
+  437 000003D0 E3540001        CMP              R4, #1
+  438 000003D4 0A000005        BEQ              end_sqr_whl
+  439 000003D8 E1A03002        MOV              R3, R2      ; else: temp = x
+  440 000003DC E1A01002        MOV              R1, R2      ; 
+  441 000003E0 E1A0000B        MOV              R0, R11     ;
+  442 000003E4 EB00000C        BL               divide      ; 
+  443 000003E8 E0822001        ADD              R2, R2, R1  ;  x = x + divide(n
+                                                            umber, x)
+  444 000003EC EAFFFFF4        B                find_sqr_whl
+  445 000003F0         end_sqr_whl
+  446 000003F0         
+  447 000003F0 E1A00002        MOV              R0, R2
+  448 000003F4 E8BD481E        POP              {R1, R2, R3, R4, R11, LR}
+  449 000003F8 E12FFF1E        BX               LR
+  450 000003FC         
+  451 000003FC         distanceSqr
+  452 000003FC         ; Parameters:
+  453 000003FC         ;  R0 = relativex
+  454 000003FC         ;  R1 = relativey
+  455 000003FC         ; Return:
+  456 000003FC         ;  R0 = distance^2
+  457 000003FC E92D0006        PUSH             {R1, R2}
+  458 00000400 E1A02000        MOV              R2, R0
+  459 00000404 E0000092        MUL              R0, R2, R0
+  460 00000408 E1A02001        MOV              R2, R1
+  461 0000040C E0010192        MUL              R1, R2, R1
+  462 00000410 E0800001        ADD              R0, R0, R1
+  463 00000414 E8BD0006        POP              {R1, R2}
+  464 00000418 E12FFF1E        BX               LR
+  465 0000041C         
+  466 0000041C         
+  467 0000041C         
+  468 0000041C         ;<-------------- Division Method -------------->;
+  469 0000041C         ; taken from my group work in the labs
+  470 0000041C         divide                               ;division loop, lea
+                                                            ves Quotient in R1 
+                                                            and Remainder in R0
+                                                            
+  471 0000041C E92D401C        STMFD            SP!, {R2, R3, R4, LR}
 
 
 
 ARM Macro Assembler    Page 10 
 
 
-                                                            of the image (rows)
-                                                             in R5
-  454 000003E8 E1A06000        MOV              R6, R0
-  455 000003EC         
-  456 000003EC E2466001        SUB              R6, R6, #1
-  457 000003F0         move2LoopI
-  458 000003F0 EBFFFFFE        BL               getPicWidth
-  459 000003F4 E1B07000        MOVS             R7, R0
-  460 000003F8 E2477001        SUB              R7, R7, #1
-  461 000003FC         
-  462 000003FC         move2LoopJ
-  463 000003FC E1A00006        MOV              R0, R6      ;
-  464 00000400 E1A01007        MOV              R1, R7      ;
-  465 00000404 EBFFFF98        BL               applyLens
-  466 00000408 E59F203C        LDR              R2, =copyAddress ;
-  467 0000040C EBFFFEFB        BL               getPixel    ;
-  468 00000410         
-  469 00000410 E1A03000        MOV              R3, R0
-  470 00000414 E1A00006        MOV              R0, R6      ;
-  471 00000418 E1A01007        MOV              R1, R7      ;
-  472 0000041C E1A02004        MOV              R2, R4
-  473 00000420 EBFFFF01        BL               putPixel
-  474 00000424         
-  475 00000424         finaly
-  476 00000424 E2577001        SUBS             R7, R7, #1  ; column --
-  477 00000428 AAFFFFF3        BGE              move2LoopJ
-  478 0000042C         endMove2LoopJ
-  479 0000042C EBFFFFFE        BL               putPic
-  480 00000430 E2566001        SUBS             R6, R6, #1
-  481 00000434 AAFFFFED        BGE              move2LoopI
-  482 00000438         endMove2LoopI
-  483 00000438         
-  484 00000438         
-  485 00000438         
-  486 00000438 EBFFFFFE        BL               putPic      ; re-display the up
+  472 00000420         
+  473 00000420 E3A04001        LDR              R4, =1      ;negative flag
+  474 00000424 E3500000        CMP              R0, #0      ;if dividend < 0
+  475 00000428 42644000        NEGMI            R4, R4      ; flag *= -1
+  476 0000042C 42600000        NEGMI            R0, R0      ; dividend *= -1
+  477 00000430 E3510000        CMP              R1, #0      ; if divisor < 0
+  478 00000434 42644000        NEGMI            R4, R4      ; flag *= -1
+  479 00000438 42611000        NEGMI            R1, R1      ; divisor *= -1
+  480 0000043C         
+  481 0000043C E3A02000        LDR              R2, =0      ; Q        ;set tem
+                                                            p quotient to 0
+  482 00000440 E3A03001        LDR              R3, =1      ; T        ;set pla
+                                                            ceholder to 1
+  483 00000444         
+  484 00000444 E3510000        CMP              R1, #0      ;         ;if Divis
+                                                            or == 0
+  485 00000448 059F0070        LDREQ            R0, =-1     ;load -1 into remai
+                                                            nder
+  486 0000044C 01A02000        MOVEQ            R2, R0      ;load -1 into quoti
+                                                            ent
+  487 00000450 0A00000B        BEQ              div_zero    ;stop
+  488 00000454         
+  489 00000454         alignLoop                            ;else
+  490 00000454 E1500001        CMP              R0, R1      ;while dividend>div
+                                                            isor
+  491 00000458 BA000002        BLT              endAlignLoop ;{
+  492 0000045C E1A01081        LSL              R1, #1      ; multiply divisor 
+                                                            by 2
+  493 00000460 E1A03083        LSL              R3, #1      ; multiply placehol
+                                                            der by 2
+  494 00000464 EAFFFFFA        B                alignLoop   ;}
+  495 00000468         endAlignLoop
+  496 00000468         
+  497 00000468         division_whl                         ;{
+  498 00000468 E1A010A1        LSR              R1, #1      ;divide divisor by 
+                                                            2
+  499 0000046C E1B030A3        LSRS             R3, #1      ;divide r3 by 2 and
+                                                             set flag
+  500 00000470 2A000003        BCS              end_division_whl ;while carry f
+                                                            lag not set{ 
+  501 00000474 E1500001        CMP              R0, R1      ; if(dividend>=divi
+                                                            sor):
+  502 00000478 20400001        SUBHS            R0, R0, R1  ;  subtract dividen
+                                                            d from divisor
+  503 0000047C 20822003        ADDHS            R2, R2, R3  ;  add placeholder 
+                                                            to temp quotient
+  504 00000480 EAFFFFF8        B                division_whl ; 
+  505 00000484         end_division_whl                     ; }
+  506 00000484         div_zero
+  507 00000484 E1A01002        MOV              R1, R2
+  508 00000488 E0010194        MUL              R1, R4, R1  ; quotient *= negat
+                                                            ive flag
+  509 0000048C E8BD401C        LDMFD            SP!, {R2, R3, R4, LR}
+  510 00000490 E12FFF1E        BX               LR
+  511 00000494         
+  512 00000494         ;<-----------------Main---------------->
+  513 00000494         
+  514 00000494         start
+  515 00000494 E59F0028        LDR              R0, =copy
+
+
+
+ARM Macro Assembler    Page 11 
+
+
+  516 00000498 EBFFFF21        BL               applyToAll
+  517 0000049C E59F0024        LDR              R0, =lensEffectCopy
+  518 000004A0 EBFFFF1F        BL               applyToAll
+  519 000004A4 E59F0020        LDR              R0, = applyGreyScale
+  520 000004A8 EBFFFF1D        BL               applyToAll
+  521 000004AC EBFFFFFE        BL               putPic      ; re-display the up
                                                             dated image
-  487 0000043C         
-  488 0000043C EAFFFFFE 
+  522 000004B0         
+  523 000004B0 EAFFFFFE 
                        stop    B                stop
-  489 00000440         
-  490 00000440         
-  491 00000440 0000012B 
+  524 000004B4         
+  525 000004B4         ;<----------------Memory--------------->
+  526 000004B4         
+  527 000004B4 A1016300 
+              0000012B 
               0000024B 
               FFFFFFFF 
-              A1016300         AREA             Variables, DATA, READWRITE
-  492 00000000         
-  493 00000000 00000002 
+              00000000 
+              00000000 
+              00000000         AREA             Variables, DATA, READWRITE
+  528 00000000         
+  529 00000000 00000002 
                        radius  DCD              2
-  494 00000004                 END
+  530 00000004                 END
 Command Line: --debug --xref --apcs=interwork --depend=.\bonuseffect.d -o.\bonu
 seffect.o -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC:\Keil\ARM\Inc\
 Philips --predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine
@@ -658,57 +698,57 @@ Symbol: MotionBlur
    Uses
       None
 Comment: MotionBlur unused
-THEENDOFTHEREVENGEOFTHEALIGNLOOP 00000384
-
-Symbol: THEENDOFTHEREVENGEOFTHEALIGNLOOP
-   Definitions
-      At line 409 in file BonusEffect.s
-   Uses
-      At line 404 in file BonusEffect.s
-Comment: THEENDOFTHEREVENGEOFTHEALIGNLOOP used once
-THEREVENGEOFTHEALIGNLOOP 00000368
-
-Symbol: THEREVENGEOFTHEALIGNLOOP
-   Definitions
-      At line 401 in file BonusEffect.s
-   Uses
-      At line 408 in file BonusEffect.s
-Comment: THEREVENGEOFTHEALIGNLOOP used once
-adjustColor 0000007C
+adjustColor 000001AC
 
 Symbol: adjustColor
    Definitions
-      At line 96 in file BonusEffect.s
+      At line 234 in file BonusEffect.s
    Uses
-      At line 80 in file BonusEffect.s
-      At line 85 in file BonusEffect.s
-      At line 90 in file BonusEffect.s
+      At line 218 in file BonusEffect.s
+      At line 223 in file BonusEffect.s
+      At line 228 in file BonusEffect.s
 
-adjustPixel 00000040
+adjustPixel 00000170
 
 Symbol: adjustPixel
    Definitions
-      At line 68 in file BonusEffect.s
+      At line 206 in file BonusEffect.s
    Uses
       None
 Comment: adjustPixel unused
-alignLoop 00000354
+alignLoop 00000454
 
 Symbol: alignLoop
    Definitions
-      At line 393 in file BonusEffect.s
+      At line 489 in file BonusEffect.s
    Uses
-      At line 398 in file BonusEffect.s
+      At line 494 in file BonusEffect.s
 Comment: alignLoop used once
-applyFuncToAll 0000021C
+applyGreyScale 000000F4
 
-Symbol: applyFuncToAll
+Symbol: applyGreyScale
    Definitions
-      At line 264 in file BonusEffect.s
+      At line 157 in file BonusEffect.s
    Uses
-      None
-Comment: applyFuncToAll unused
-applyLens 0000026C
+      At line 519 in file BonusEffect.s
+Comment: applyGreyScale used once
+applyLens 00000310
+
+Symbol: applyLens
+   Definitions
+      At line 358 in file BonusEffect.s
+   Uses
+      At line 144 in file BonusEffect.s
+Comment: applyLens used once
+applyToAll 00000124
+
+Symbol: applyToAll
+   Definitions
+      At line 175 in file BonusEffect.s
+   Uses
+      At line 516 in file BonusEffect.s
+      At line 518 in file BonusEffect.s
+      At line 520 in file BonusEffect.s
 
 
 
@@ -716,335 +756,308 @@ ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 Relocatable symbols
 
 
-Symbol: applyLens
-   Definitions
-      At line 300 in file BonusEffect.s
-   Uses
-      At line 465 in file BonusEffect.s
-Comment: applyLens used once
-averageColor 00000124
+averageColor 00000218
 
 Symbol: averageColor
    Definitions
-      At line 183 in file BonusEffect.s
+      At line 279 in file BonusEffect.s
    Uses
-      At line 174 in file BonusEffect.s
-      At line 176 in file BonusEffect.s
-      At line 178 in file BonusEffect.s
+      At line 271 in file BonusEffect.s
+      At line 273 in file BonusEffect.s
+      At line 275 in file BonusEffect.s
 
-averageN 000000E4
+averageN 000001D8
 
 Symbol: averageN
    Definitions
-      At line 158 in file BonusEffect.s
+      At line 255 in file BonusEffect.s
    Uses
       None
 Comment: averageN unused
-copyImage 000003A4
+col_whl 00000150
 
-Symbol: copyImage
+Symbol: col_whl
    Definitions
-      At line 424 in file BonusEffect.s
+      At line 192 in file BonusEffect.s
    Uses
-      None
-Comment: copyImage unused
-distanceSqr 000002FC
+      At line 196 in file BonusEffect.s
+Comment: col_whl used once
+copy 0000007C
+
+Symbol: copy
+   Definitions
+      At line 111 in file BonusEffect.s
+   Uses
+      At line 515 in file BonusEffect.s
+Comment: copy used once
+distanceSqr 000003FC
 
 Symbol: distanceSqr
    Definitions
-      At line 356 in file BonusEffect.s
+      At line 451 in file BonusEffect.s
    Uses
-      At line 323 in file BonusEffect.s
+      At line 382 in file BonusEffect.s
 Comment: distanceSqr used once
-div_zero 00000384
+div_zero 00000484
 
 Symbol: div_zero
    Definitions
-      At line 410 in file BonusEffect.s
+      At line 506 in file BonusEffect.s
    Uses
-      At line 391 in file BonusEffect.s
+      At line 487 in file BonusEffect.s
 Comment: div_zero used once
-divide 0000031C
+divide 0000041C
 
 Symbol: divide
    Definitions
-      At line 374 in file BonusEffect.s
+      At line 470 in file BonusEffect.s
    Uses
-      At line 199 in file BonusEffect.s
-      At line 251 in file BonusEffect.s
-      At line 290 in file BonusEffect.s
-      At line 328 in file BonusEffect.s
+      At line 295 in file BonusEffect.s
+      At line 347 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Relocatable symbols
 
-      At line 333 in file BonusEffect.s
-      At line 338 in file BonusEffect.s
+      At line 391 in file BonusEffect.s
+      At line 399 in file BonusEffect.s
+      At line 442 in file BonusEffect.s
 
-endAlignLoop 00000368
+division_whl 00000468
+
+Symbol: division_whl
+   Definitions
+      At line 497 in file BonusEffect.s
+   Uses
+      At line 504 in file BonusEffect.s
+Comment: division_whl used once
+endAlignLoop 00000468
 
 Symbol: endAlignLoop
    Definitions
-      At line 399 in file BonusEffect.s
+      At line 495 in file BonusEffect.s
    Uses
-      At line 395 in file BonusEffect.s
+      At line 491 in file BonusEffect.s
 Comment: endAlignLoop used once
-endForN 00000148
+endForN 0000023C
 
 Symbol: endForN
    Definitions
-      At line 194 in file BonusEffect.s
+      At line 290 in file BonusEffect.s
    Uses
-      At line 186 in file BonusEffect.s
+      At line 282 in file BonusEffect.s
 Comment: endForN used once
-endGetMaskWhile 000000C0
+endGetMaskWhile 00000058
 
 Symbol: endGetMaskWhile
    Definitions
-      At line 134 in file BonusEffect.s
+      At line 87 in file BonusEffect.s
    Uses
-      At line 131 in file BonusEffect.s
+      At line 84 in file BonusEffect.s
 Comment: endGetMaskWhile used once
-endMove2LoopI 00000438
+endSetMaskWhile 00000074
 
-Symbol: endMove2LoopI
+Symbol: endSetMaskWhile
    Definitions
-      At line 482 in file BonusEffect.s
+      At line 107 in file BonusEffect.s
+   Uses
+      At line 104 in file BonusEffect.s
+Comment: endSetMaskWhile used once
+end_col_whl 00000160
+
+Symbol: end_col_whl
+   Definitions
+      At line 197 in file BonusEffect.s
    Uses
       None
-Comment: endMove2LoopI unused
-endMove2LoopJ 0000042C
+Comment: end_col_whl unused
+end_division_whl 00000484
 
-Symbol: endMove2LoopJ
+Symbol: end_division_whl
    Definitions
-      At line 478 in file BonusEffect.s
+      At line 505 in file BonusEffect.s
    Uses
-      None
-Comment: endMove2LoopJ unused
-endMoveLoopI 000003E4
-
-Symbol: endMoveLoopI
-   Definitions
-      At line 449 in file BonusEffect.s
-   Uses
-      None
-Comment: endMoveLoopI unused
-endMoveLoopJ 000003DC
-
-Symbol: endMoveLoopJ
-   Definitions
-      At line 445 in file BonusEffect.s
-   Uses
-      None
-Comment: endMoveLoopJ unused
+      At line 500 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Relocatable symbols
 
-endSetMaskWhile 000000DC
+Comment: end_division_whl used once
+end_row_whl 00000168
 
-Symbol: endSetMaskWhile
+Symbol: end_row_whl
    Definitions
-      At line 154 in file BonusEffect.s
+      At line 200 in file BonusEffect.s
    Uses
-      At line 151 in file BonusEffect.s
-Comment: endSetMaskWhile used once
-end_sqr_whl 00000260
+      None
+Comment: end_row_whl unused
+end_sqr_whl 000003F0
 
 Symbol: end_sqr_whl
    Definitions
-      At line 293 in file BonusEffect.s
+      At line 445 in file BonusEffect.s
    Uses
-      At line 284 in file BonusEffect.s
-      At line 286 in file BonusEffect.s
+      At line 436 in file BonusEffect.s
+      At line 438 in file BonusEffect.s
 
-finaly 00000424
-
-Symbol: finaly
-   Definitions
-      At line 475 in file BonusEffect.s
-   Uses
-      None
-Comment: finaly unused
-find_sqr_whl 00000234
+find_sqr_whl 000003C4
 
 Symbol: find_sqr_whl
    Definitions
-      At line 281 in file BonusEffect.s
+      At line 433 in file BonusEffect.s
    Uses
-      At line 292 in file BonusEffect.s
+      At line 444 in file BonusEffect.s
 Comment: find_sqr_whl used once
-forN 00000124
+forN 00000218
 
 Symbol: forN
    Definitions
-      At line 184 in file BonusEffect.s
+      At line 280 in file BonusEffect.s
    Uses
-      At line 193 in file BonusEffect.s
+      At line 289 in file BonusEffect.s
 Comment: forN used once
-getMaskWhile 000000B0
+getMaskWhile 00000048
 
 Symbol: getMaskWhile
    Definitions
-      At line 129 in file BonusEffect.s
+      At line 82 in file BonusEffect.s
    Uses
-      At line 133 in file BonusEffect.s
+      At line 86 in file BonusEffect.s
 Comment: getMaskWhile used once
 getPixel 00000000
 
 Symbol: getPixel
    Definitions
-      At line 20 in file BonusEffect.s
+      At line 22 in file BonusEffect.s
    Uses
-      At line 436 in file BonusEffect.s
-      At line 467 in file BonusEffect.s
+      At line 124 in file BonusEffect.s
+      At line 146 in file BonusEffect.s
+      At line 167 in file BonusEffect.s
 
-getValueFromMask 000000A8
+getValueFromMask 00000040
+
+Symbol: getValueFromMask
+   Definitions
+      At line 70 in file BonusEffect.s
+   Uses
+      At line 217 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 5 Alphabetic symbol ordering
 Relocatable symbols
 
-
-Symbol: getValueFromMask
-   Definitions
-      At line 117 in file BonusEffect.s
-   Uses
-      At line 79 in file BonusEffect.s
-      At line 84 in file BonusEffect.s
-      At line 89 in file BonusEffect.s
-      At line 189 in file BonusEffect.s
+      At line 222 in file BonusEffect.s
       At line 227 in file BonusEffect.s
-      At line 235 in file BonusEffect.s
-      At line 243 in file BonusEffect.s
+      At line 285 in file BonusEffect.s
+      At line 323 in file BonusEffect.s
+      At line 331 in file BonusEffect.s
+      At line 339 in file BonusEffect.s
 
-greyScale 00000198
+greyScale 0000028C
 
 Symbol: greyScale
    Definitions
-      At line 216 in file BonusEffect.s
+      At line 312 in file BonusEffect.s
    Uses
-      None
-Comment: greyScale unused
-move2LoopI 000003F0
+      At line 168 in file BonusEffect.s
+Comment: greyScale used once
+lensEffectCopy 000000B4
 
-Symbol: move2LoopI
+Symbol: lensEffectCopy
    Definitions
-      At line 457 in file BonusEffect.s
+      At line 134 in file BonusEffect.s
    Uses
-      At line 481 in file BonusEffect.s
-Comment: move2LoopI used once
-move2LoopJ 000003FC
-
-Symbol: move2LoopJ
-   Definitions
-      At line 462 in file BonusEffect.s
-   Uses
-      At line 477 in file BonusEffect.s
-Comment: move2LoopJ used once
-moveLoopI 000003A8
-
-Symbol: moveLoopI
-   Definitions
-      At line 426 in file BonusEffect.s
-   Uses
-      At line 448 in file BonusEffect.s
-Comment: moveLoopI used once
-moveLoopJ 000003B4
-
-Symbol: moveLoopJ
-   Definitions
-      At line 431 in file BonusEffect.s
-   Uses
-      At line 444 in file BonusEffect.s
-Comment: moveLoopJ used once
-normalize_origin 0000026C
+      At line 517 in file BonusEffect.s
+Comment: lensEffectCopy used once
+normalize_origin 00000310
 
 Symbol: normalize_origin
    Definitions
-      At line 304 in file BonusEffect.s
+      At line 362 in file BonusEffect.s
    Uses
+      None
+Comment: normalize_origin unused
+putPixel 00000014
+
+Symbol: putPixel
+   Definitions
+      At line 38 in file BonusEffect.s
+   Uses
+      At line 129 in file BonusEffect.s
+      At line 152 in file BonusEffect.s
+      At line 171 in file BonusEffect.s
+
+rowColToIndex 00000028
+
+Symbol: rowColToIndex
+   Definitions
+      At line 55 in file BonusEffect.s
+   Uses
+      At line 32 in file BonusEffect.s
+      At line 49 in file BonusEffect.s
+
+row_whl 0000013C
+
+Symbol: row_whl
+   Definitions
+      At line 186 in file BonusEffect.s
+   Uses
+      At line 199 in file BonusEffect.s
+Comment: row_whl used once
+setMaskWhile 00000064
 
 
 
 ARM Macro Assembler    Page 6 Alphabetic symbol ordering
 Relocatable symbols
 
-      None
-Comment: normalize_origin unused
-putPixel 0000002C
-
-Symbol: putPixel
-   Definitions
-      At line 51 in file BonusEffect.s
-   Uses
-      At line 441 in file BonusEffect.s
-      At line 473 in file BonusEffect.s
-
-rowColToIndex 00000014
-
-Symbol: rowColToIndex
-   Definitions
-      At line 36 in file BonusEffect.s
-   Uses
-      At line 30 in file BonusEffect.s
-      At line 62 in file BonusEffect.s
-
-setMaskWhile 000000CC
 
 Symbol: setMaskWhile
    Definitions
-      At line 149 in file BonusEffect.s
+      At line 102 in file BonusEffect.s
    Uses
-      At line 153 in file BonusEffect.s
+      At line 106 in file BonusEffect.s
 Comment: setMaskWhile used once
-setValueFromMask 000000C8
+setValueFromMask 00000060
 
 Symbol: setValueFromMask
    Definitions
-      At line 138 in file BonusEffect.s
-   Uses
-      At line 81 in file BonusEffect.s
-      At line 86 in file BonusEffect.s
       At line 91 in file BonusEffect.s
-      At line 209 in file BonusEffect.s
+   Uses
+      At line 219 in file BonusEffect.s
+      At line 224 in file BonusEffect.s
+      At line 229 in file BonusEffect.s
+      At line 305 in file BonusEffect.s
 
-sqrt 0000021C
+sqrt 000003AC
 
 Symbol: sqrt
    Definitions
-      At line 267 in file BonusEffect.s
+      At line 419 in file BonusEffect.s
    Uses
-      At line 324 in file BonusEffect.s
+      At line 383 in file BonusEffect.s
 Comment: sqrt used once
-start 00000394
+start 00000494
 
 Symbol: start
    Definitions
-      At line 418 in file BonusEffect.s
+      At line 514 in file BonusEffect.s
    Uses
       At line 8 in file BonusEffect.s
 Comment: start used once
-stop 0000043C
+stop 000004B0
 
 Symbol: stop
    Definitions
-
-
-
-ARM Macro Assembler    Page 7 Alphabetic symbol ordering
-Relocatable symbols
-
-      At line 488 in file BonusEffect.s
+      At line 523 in file BonusEffect.s
    Uses
-      At line 488 in file BonusEffect.s
+      At line 523 in file BonusEffect.s
 Comment: stop used once
-42 symbols
+39 symbols
 
 
 
@@ -1055,7 +1068,7 @@ Variables 00000000
 
 Symbol: Variables
    Definitions
-      At line 491 in file BonusEffect.s
+      At line 527 in file BonusEffect.s
    Uses
       None
 Comment: Variables unused
@@ -1063,7 +1076,7 @@ radius 00000000
 
 Symbol: radius
    Definitions
-      At line 493 in file BonusEffect.s
+      At line 529 in file BonusEffect.s
    Uses
       None
 Comment: radius unused
@@ -1080,9 +1093,9 @@ Symbol: blueMask
    Definitions
       At line 13 in file BonusEffect.s
    Uses
-      At line 88 in file BonusEffect.s
-      At line 177 in file BonusEffect.s
-      At line 242 in file BonusEffect.s
+      At line 226 in file BonusEffect.s
+      At line 274 in file BonusEffect.s
+      At line 338 in file BonusEffect.s
 
 copyAddress A1016300
 
@@ -1090,8 +1103,8 @@ Symbol: copyAddress
    Definitions
       At line 10 in file BonusEffect.s
    Uses
-      At line 440 in file BonusEffect.s
-      At line 466 in file BonusEffect.s
+      At line 128 in file BonusEffect.s
+      At line 145 in file BonusEffect.s
 
 greenMask 0000FF00
 
@@ -1099,9 +1112,9 @@ Symbol: greenMask
    Definitions
       At line 12 in file BonusEffect.s
    Uses
-      At line 83 in file BonusEffect.s
-      At line 175 in file BonusEffect.s
-      At line 234 in file BonusEffect.s
+      At line 221 in file BonusEffect.s
+      At line 272 in file BonusEffect.s
+      At line 330 in file BonusEffect.s
 
 lensn 00000001
 
@@ -1109,15 +1122,15 @@ Symbol: lensn
    Definitions
       At line 16 in file BonusEffect.s
    Uses
-      At line 325 in file BonusEffect.s
-Comment: lensn used once
-lensq 00000006
+      None
+Comment: lensn unused
+lensq 0000000A
 
 Symbol: lensq
    Definitions
       At line 17 in file BonusEffect.s
    Uses
-      At line 327 in file BonusEffect.s
+      At line 365 in file BonusEffect.s
 Comment: lensq used once
 redMask 00FF0000
 
@@ -1125,9 +1138,9 @@ Symbol: redMask
    Definitions
       At line 11 in file BonusEffect.s
    Uses
-      At line 78 in file BonusEffect.s
-      At line 173 in file BonusEffect.s
-      At line 226 in file BonusEffect.s
+      At line 216 in file BonusEffect.s
+      At line 270 in file BonusEffect.s
+      At line 322 in file BonusEffect.s
 
 xhalf 00000028
 
@@ -1164,18 +1177,19 @@ Symbol: getPicAddr
    Definitions
       At line 4 in file BonusEffect.s
    Uses
-      At line 419 in file BonusEffect.s
-Comment: getPicAddr used once
+      At line 120 in file BonusEffect.s
+      At line 139 in file BonusEffect.s
+      At line 164 in file BonusEffect.s
+
 getPicHeight 00000000
 
 Symbol: getPicHeight
    Definitions
       At line 7 in file BonusEffect.s
    Uses
-      At line 307 in file BonusEffect.s
-      At line 341 in file BonusEffect.s
-      At line 421 in file BonusEffect.s
-      At line 453 in file BonusEffect.s
+      At line 183 in file BonusEffect.s
+      At line 366 in file BonusEffect.s
+      At line 402 in file BonusEffect.s
 
 getPicWidth 00000000
 
@@ -1183,11 +1197,11 @@ Symbol: getPicWidth
    Definitions
       At line 6 in file BonusEffect.s
    Uses
-      At line 46 in file BonusEffect.s
-      At line 311 in file BonusEffect.s
-      At line 345 in file BonusEffect.s
-      At line 427 in file BonusEffect.s
-      At line 458 in file BonusEffect.s
+      At line 65 in file BonusEffect.s
+      At line 181 in file BonusEffect.s
+      At line 188 in file BonusEffect.s
+      At line 370 in file BonusEffect.s
+      At line 406 in file BonusEffect.s
 
 main 00000000
 
@@ -1203,8 +1217,7 @@ Symbol: putPic
    Definitions
       At line 5 in file BonusEffect.s
    Uses
-      At line 479 in file BonusEffect.s
-      At line 486 in file BonusEffect.s
-
+      At line 521 in file BonusEffect.s
+Comment: putPic used once
 5 symbols
-396 symbols in table
+393 symbols in table
