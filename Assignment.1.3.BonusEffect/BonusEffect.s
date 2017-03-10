@@ -201,34 +201,156 @@ end_row_whl
 	POP {R0, R1, R2, R3, LR}
 	BX LR
 	
+applyAdjust
+	; Parameters:
+	;				R0 = row
+	;				R1 = col
+	
+	PUSH {R0, R1, R2, R3, R4, LR}
+	MOV R4, R0
+	BL getPicAddr
+	MOV R2, R0
+	MOV R0, R4
+	BL getPixel
+	BL adjustPixelColor
+	
+	MOV R3, R0
+	BL getPicAddr
+	MOV R2, R0
+	MOV R0, R4
+	BL putPixel
+	POP {R0, R1, R2, R3, R4, LR}
+	BX LR
+	
+applyMotionBlur
+	; Parameters:
+	; 				R0 = row
+	;				R1 = col
+	
+	PUSH {R0, R1, R2, R4, R6, R7, R8, R9, R10, R11, LR}
+	
+	LDR R9, =1		; count = 1 (current pixel)
+	
+	LDR R8, =radius
+	LDR R8, [R8]
+	MOV R10, R0
+	MOV R11, R1
+	
+	MOV R6, R0		;
+	MOV R7, R1		;
+	
+	LDR R2, =copyAddress
+		
+	BL getPixel		; 
+	PUSH {R0}
+	CMP R6, #0
+topLoop
+	BMI endTopLoop
+	SUBS R6, R6, #1
+	BMI topFinally
+	SUBS R7, R7, #1
+	BMI topFinally
+	MOV R0, R6		
+	MOV R1, R7		
+	LDR R2, =copyAddress		
+	BL getPixel		
+	PUSH {R0}
+	ADD R9, R9, #1
+topFinally
+	SUBS R8, R8, #1
+	BNE topLoop
+endTopLoop
+
+	LDR R8, =radius
+	LDR R8, [R8]
+	MOV R6, R10
+	MOV R7, R11
+	
+	CMP R6, #0
+bottomLoop
+	BMI endBottomLoop
+	ADD R6, R6, #1
+	BL getPicHeight
+	CMP R6, R0
+	BGE bottomFinally
+	ADD R7, R7, #1
+	BL getPicWidth
+	CMP R7, R0
+	BGE bottomFinally
+	MOV R0, R6		;
+	MOV R1, R7		;
+	LDR R2, =copyAddress		;
+	BL getPixel		; 
+	PUSH {R0}
+	ADD R9, R9, #1
+bottomFinally
+	SUBS R8, R8, #1
+	BNE bottomLoop
+endBottomLoop
+
+	PUSH {R9}
+	BL averageN	
+			
+	MOV R6, R10
+	MOV R7, R11
+	
+	MOV R3, R0
+	BL getPicAddr
+	MOV R2, R0
+	MOV R0, R6
+	MOV R1, R7
+	BL putPixel
+
+	POP {R9}
+clear_stack
+	POP {R12}
+	SUBS R9, R9, #1
+	BNE clear_stack
+	
+	POP {R0, R1, R2, R4, R6, R7, R8, R9, R10, R11, LR}
+	BX LR
+	
 ;<--------------Effects-------------->
 	
-adjustPixel
+adjustPixelColor
 	; adjustedVal = adjustPixel(value, contrast, brightness)
 	; Applies a given contrast and brightness value
 	; Parameters:
 	; R0 = RGB
-	; R2 = contrast   (0 <= contrast) contrast has no effect at 16
-	; R3 = brightness
-
-	STMFD SP!, {R2, R3, LR} ; save link register and pass paramters contrast and brightness
+	PUSH {R1, R2, R3, LR}
+	LDR R2, =contrast
+	LDR R2, [R2]
+	LDR R3, =brightness
+	LDR R3, [R3]
+	PUSH {R2, R3} ; save link register and pass paramters contrast and brightness
+	MOV R3, R0
 	
 	LDR R1, = redMask; mask = redMask
 	BL getValueFromMask	; val = getValueFromMask(RGB, mask)
+	MOV R2, R0
 	BL adjustColor		; val = adjustColor(val, contrast, brightness)
+	MOV R0, R3
 	BL setValueFromMask	; RGB = setValueFromMask(RGB, mask, value)
+	MOV R3, R0
 	
 	LDR R1, = greenMask
 	BL getValueFromMask
+	MOV R2, R0
 	BL adjustColor
+	MOV R0, R3
 	BL setValueFromMask
+	MOV R3, R0
+
 	
 	LDR R1, = blueMask
 	BL getValueFromMask
+	MOV R2, R0
 	BL adjustColor
+	MOV R0, R3
 	BL setValueFromMask
 
-	LDMFD SP!, {R2, R3, LR}
+	POP {R2, R3}
+	POP {R1, R2, R3, LR}
 	BX LR
 	
 adjustColor 
@@ -510,14 +632,18 @@ div_zero
 	BX LR							
 	
 ;<-----------------Main---------------->
-	
 start
+
+	;LDR R0, =applyAdjust
+	;BL applyToAll
 	LDR R0, =copy
 	BL applyToAll
+	;LDR R0, =applyMotionBlur
+	;BL applyToAll
 	LDR R0, =lensEffectCopy
 	BL applyToAll
-	LDR R0, = applyGreyScale
-	BL applyToAll
+	;LDR R0, = applyGreyScale
+	;BL applyToAll
 	BL	putPic		; re-display the updated image
 	
 stop	B	stop
@@ -527,4 +653,7 @@ stop	B	stop
 	AREA Variables, DATA, READWRITE
 	
 radius DCD 2
+contrast DCD 17
+brightness DCD 100
+
 	END
