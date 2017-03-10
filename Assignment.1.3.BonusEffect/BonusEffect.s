@@ -13,7 +13,9 @@ greenMask 	EQU 0x0000FF00
 blueMask 	EQU 0x000000FF
 xhalf		EQU 40
 yhalf		EQU 49
-lensDivisor	EQU 1000
+lensn		EQU 1
+lensq		EQU 6
+
 
 getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
@@ -271,15 +273,17 @@ sqrt
 	CMP R0, #1		; if the number is one return one
 	BXEQ LR
 	
-	PUSH {R1, R2, R3, R11, LR}
+	PUSH {R1, R2, R3, R4, R11, LR}
 	MOV R11, R0		; save number
 	LDR R3, =0		; temp = 0
 	MOV R2, R0 		; x = S
 	
 find_sqr_whl
 	LSR R2, R2, #1	; x /= 2
-	CMP R2, R3		; if x = temp:
+	SUBS R4, R2, R3
 	BEQ end_sqr_whl	;	return x
+	CMP R4, #1
+	BEQ end_sqr_whl
 	MOV R3, R2		; else: temp = x
 	MOV R1, R2		; 
 	MOV R0, R11		;
@@ -289,7 +293,7 @@ find_sqr_whl
 end_sqr_whl
 
 	MOV R0, R2
-	POP {R1, R2, R3, R11, LR}
+	POP {R1, R2, R3, R4, R11, LR}
 	BX LR
 	
 	
@@ -298,7 +302,7 @@ applyLens
 	; R1 = X
 	
 normalize_origin
-	PUSH {r0, r1, R2, R3, R10, R11, LR}
+	PUSH {r0, r1, R2, R3, R9, R10, R11, LR}
 	
 	BL getPicHeight
 	LSR R0, R0, #1
@@ -312,49 +316,40 @@ normalize_origin
 	
 	SUB R0, R0, R2		; y -= centery
 	SUB R1, R1, R3		; x -= centery
+	
 	MOV R10, R0			; save y
 	MOV R11, R1			; save x
 	
-	; P / (1 - a|P|^2)
-	BL distanceSqr		; |P|^2
-	LDR R1, =lensDivisor
-	BL divide			; (1/10)*|P|^2
-	BL getPicWidth
-	LSR R0, R0, #1
-	SUB R2, R0, R1		; width/2 - (1/10)*|P|^2
-	MOV R0, R10			; 
-	MOV R1, R2			;
-	BL divide			; y1 = divide(y, width/2 - (1/10)*|P|^2)
-	MOV R3, R1			; save y1
-	MOV R0, R11			; 	
-	MOV R1, R2			;
-	BL divide			; x1 = divide(x, width/2 - (1/10)*|P|^2)	
-	MOV R0, R3			; 
-	BL distanceSqr		; d = |x1, y1|^2
-	LDR R1, =lensDivisor;
-	BL divide			; (1/10)*d
-	BL getPicWidth		;
-	LSR R0, R0, #1		; width/2
-	SUB R2, R0, R1		; width/2 - (1/10)*d
+	BL distanceSqr
+	BL sqrt
+	LDR R1, =lensn
+	MUL R0, R1, R0
+	LDR R1, =lensq
+	BL divide
+	MOV R9, R1
+	
 	MOV R0, R10
-	MOV R1, R2
-	BL divide			; y/(width/2 - (1/10)*d)
-	MOV R10, R1
+	MOV R1, R9
+	BL divide
+	SUB R10, R10, R1
+	
 	MOV R0, R11
-	MOV R1, R2
-	BL divide			; x/(width/2 - (1/10)*d)
+	MOV R1, R9
+	BL divide
+	SUB R11, R11, R1
 	
 	BL getPicHeight
 	LSR R0, R0, #1
-	ADD R10, R0, R10		; X += height / 2
+	ADD R10, R10, R0
 	
 	BL getPicWidth
 	LSR R0, R0, #1
-	ADD R1, R1, R0
+	ADD R1, R11, R0
 	
 	MOV R0, R10
 	
-	POP {R2, R3, R10, R11, LR}
+	
+	POP {R2, R3, R9, R10, R11, LR}
 	BX LR
 	
 	
@@ -392,8 +387,8 @@ divide											;division loop, leaves Quotient in R1 and Remainder in R0
 
 	CMP R1, #0;									;if Divisor == 0
 	LDREQ R0, =-1								;load -1 into remainder
-	LDREQ R1, =-1								;load -1 into quotient
-	BEQ stop									;stop
+	MOVEQ R2, #1								;load -1 into quotient
+	BEQ div_zero									;stop
 	
 alignLoop										;else
 	CMP R0, R1									;while dividend>divisor
@@ -412,6 +407,7 @@ THEREVENGEOFTHEALIGNLOOP						;{
 	ADDHS R2, R2, R3							;		add placeholder to temp quotient
 	B THEREVENGEOFTHEALIGNLOOP					;	
 THEENDOFTHEREVENGEOFTHEALIGNLOOP				; }
+div_zero
 	MOV R1, R2
 	
 	MUL R1, R4, R1								; quotient *= negative flag
@@ -475,7 +471,7 @@ move2LoopJ
 	MOV R1, R7		;
 	MOV R2, R4
 	BL putPixel
-	
+
 finaly
 	SUBS R7, R7, #1		; column --
 	BGE move2LoopJ
