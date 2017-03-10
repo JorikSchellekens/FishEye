@@ -13,6 +13,7 @@ greenMask 	EQU 0x0000FF00
 blueMask 	EQU 0x000000FF
 xhalf		EQU 40
 yhalf		EQU 49
+lensDivisor	EQU 1000
 
 getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
@@ -257,9 +258,134 @@ greyScale
 	BX LR
 	
 
+
+applyFuncToAll
+	; applies a passed subroutine for every pixel
+	
+sqrt
+	; Finds the square root of a number
+	; Parameters:
+	;		R0 = number
+	; Outputs:
+	;		R0 = sqare root
+	CMP R0, #1		; if the number is one return one
+	BXEQ LR
+	
+	PUSH {R1, R2, R3, R11, LR}
+	MOV R11, R0		; save number
+	LDR R3, =0		; temp = 0
+	MOV R2, R0 		; x = S
+	
+find_sqr_whl
+	LSR R2, R2, #1	; x /= 2
+	CMP R2, R3		; if x = temp:
+	BEQ end_sqr_whl	;	return x
+	MOV R3, R2		; else: temp = x
+	MOV R1, R2		; 
+	MOV R0, R11		;
+	BL divide		; 
+	ADD R2, R2, R1	; 	x = x + divide(number, x)
+	B find_sqr_whl
+end_sqr_whl
+
+	MOV R0, R2
+	POP {R1, R2, R3, R11, LR}
+	BX LR
+	
+	
+applyLens
+	; R0 = y
+	; R1 = X
+	
+normalize_origin
+	PUSH {r0, r1, R2, R3, R10, R11, LR}
+	
+	BL getPicHeight
+	LSR R0, R0, #1
+	MOV R2, R0
+	
+	BL getPicWidth
+	LSR R0, R0, #1
+	MOV R3, R0
+	
+	POP {r0, r1}
+	
+	SUB R0, R0, R2		; y -= centery
+	SUB R1, R1, R3		; x -= centery
+	MOV R10, R0			; save y
+	MOV R11, R1			; save x
+	
+	; P / (1 - a|P|^2)
+	BL distanceSqr		; |P|^2
+	LDR R1, =lensDivisor
+	BL divide			; (1/10)*|P|^2
+	BL getPicWidth
+	LSR R0, R0, #1
+	SUB R2, R0, R1		; width/2 - (1/10)*|P|^2
+	MOV R0, R10			; 
+	MOV R1, R2			;
+	BL divide			; y1 = divide(y, width/2 - (1/10)*|P|^2)
+	MOV R3, R1			; save y1
+	MOV R0, R11			; 	
+	MOV R1, R2			;
+	BL divide			; x1 = divide(x, width/2 - (1/10)*|P|^2)	
+	MOV R0, R3			; 
+	BL distanceSqr		; d = |x1, y1|^2
+	LDR R1, =lensDivisor;
+	BL divide			; (1/10)*d
+	BL getPicWidth		;
+	LSR R0, R0, #1		; width/2
+	SUB R2, R0, R1		; width/2 - (1/10)*d
+	MOV R0, R10
+	MOV R1, R2
+	BL divide			; y/(width/2 - (1/10)*d)
+	MOV R10, R1
+	MOV R0, R11
+	MOV R1, R2
+	BL divide			; x/(width/2 - (1/10)*d)
+	
+	BL getPicHeight
+	LSR R0, R0, #1
+	ADD R10, R0, R10		; X += height / 2
+	
+	BL getPicWidth
+	LSR R0, R0, #1
+	ADD R1, R1, R0
+	
+	MOV R0, R10
+	
+	POP {R2, R3, R10, R11, LR}
+	BX LR
+	
+	
+distanceSqr
+	; R0 = relativex
+	; R1 = relativey
+	
+	; R0 = distance^2
+	PUSH {R1, R2}
+	MOV R2, R0
+	MUL R0, R2, R0
+	MOV R2, R1
+	MUL R1, R2, R1
+	ADD R0, R0, R1
+	POP {R1, R2}
+	BX LR
+	
+	
+	
+	
 ; taken from my group work in the labs
 divide											;division loop, leaves Quotient in R1 and Remainder in R0
-	STMFD SP!, {R2, R3, LR}
+	STMFD SP!, {R2, R3, R4, LR}
+	
+	LDR	R4, =1									;negative flag
+	CMP R0, #0									;if dividend < 0
+	NEGMI R4, R4								;	flag *= -1
+	NEGMI R0, R0								;	dividend *= -1
+	CMP R1, #0									; if divisor < 0
+	NEGMI R4, R4								;	flag *= -1
+	NEGMI R1, R1								;	divisor *= -1
 	
 	LDR R2, =0	; Q								;set temp quotient to 0
 	LDR R3, =1	; T								;set placeholder to 1
@@ -287,7 +413,9 @@ THEREVENGEOFTHEALIGNLOOP						;{
 	B THEREVENGEOFTHEALIGNLOOP					;	
 THEENDOFTHEREVENGEOFTHEALIGNLOOP				; }
 	MOV R1, R2
-	LDMFD SP!, {R2, R3, LR}								
+	
+	MUL R1, R4, R1								; quotient *= negative flag
+	LDMFD SP!, {R2, R3, R4, LR}								
 	BX LR							
 	
 
@@ -310,8 +438,6 @@ moveLoopJ
 
 	MOV R2, R4
 	BL getPixel
-
-	BL greyScale
 	
 	MOV R3, R0
 	MOV R0, R6
@@ -340,11 +466,10 @@ move2LoopI
 move2LoopJ
 	MOV R0, R6		;
 	MOV R1, R7		;
+	BL applyLens
 	LDR R2, =copyAddress;
 	BL getPixel		;
-	
-	BL greyScale
-	
+		
 	MOV R3, R0
 	MOV R0, R6		;
 	MOV R1, R7		;
@@ -355,7 +480,7 @@ finaly
 	SUBS R7, R7, #1		; column --
 	BGE move2LoopJ
 endMove2LoopJ
-
+	BL putPic
 	SUBS R6, R6, #1
 	BGE move2LoopI
 endMove2LoopI

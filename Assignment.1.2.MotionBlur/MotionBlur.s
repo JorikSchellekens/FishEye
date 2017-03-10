@@ -379,5 +379,5 @@ stop	B	stop
 
 	AREA Variables, DATA, READWRITE
 	
-radius DCD 3
+radius DCD 2
 	END
