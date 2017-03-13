@@ -30,8 +30,8 @@ ARM Macro Assembler    Page 1
                        yhalf   EQU              49
    16 00000000 00000001 
                        lensn   EQU              1
-   17 00000000 0000000A 
-                       lensq   EQU              10
+   17 00000000 00000014 
+                       lensq   EQU              20
    18 00000000         
    19 00000000         
    20 00000000         
@@ -175,7 +175,7 @@ ARM Macro Assembler    Page 3
   125 0000009C         
   126 0000009C E1A03000        MOV              R3, R0
   127 000000A0 E1A00006        MOV              R0, R6
-  128 000000A4 E59F2570        LDR              R2, =copyAddress
+  128 000000A4 E59F255C        LDR              R2, =copyAddress
   129 000000A8 EBFFFFD9        BL               putPixel
   130 000000AC         
   131 000000AC E8BD40CF        POP              {R0, R1, R2, R3, R6, R7, LR}
@@ -199,7 +199,7 @@ ARM Macro Assembler    Page 3
 ARM Macro Assembler    Page 4 
 
 
-  145 000000D0 E59F2544        LDR              R2, =copyAddress ;
+  145 000000D0 E59F2530        LDR              R2, =copyAddress ;
   146 000000D4 EBFFFFC9        BL               getPixel    ;
   147 000000D8         
   148 000000D8 E1A03000        MOV              R3, R0
@@ -298,7 +298,7 @@ ARM Macro Assembler    Page 5
   232 000001AC E3A09001        LDR              R9, =1      ; count = 1 (curren
                                                             t pixel)
   233 000001B0         
-  234 000001B0 E59F8468        LDR              R8, =radius
+  234 000001B0 E59F8454        LDR              R8, =radius
   235 000001B4 E5988000        LDR              R8, [R8]
   236 000001B8 E1A0A000        MOV              R10, R0
   237 000001BC E1A0B001        MOV              R11, R1
@@ -306,7 +306,7 @@ ARM Macro Assembler    Page 5
   239 000001C0 E1A06000        MOV              R6, R0      ;
   240 000001C4 E1A07001        MOV              R7, R1      ;
   241 000001C8         
-  242 000001C8 E59F244C        LDR              R2, =copyAddress
+  242 000001C8 E59F2438        LDR              R2, =copyAddress
   243 000001CC         
   244 000001CC EBFFFF8B        BL               getPixel    ; 
   245 000001D0 E52D0004        PUSH             {R0}
@@ -319,7 +319,7 @@ ARM Macro Assembler    Page 5
   252 000001E8 4A000005        BMI              topFinally
   253 000001EC E1A00006        MOV              R0, R6
   254 000001F0 E1A01007        MOV              R1, R7
-  255 000001F4 E59F2420        LDR              R2, =copyAddress
+  255 000001F4 E59F240C        LDR              R2, =copyAddress
   256 000001F8 EBFFFF80        BL               getPixel
   257 000001FC E52D0004        PUSH             {R0}
   258 00000200 E2899001        ADD              R9, R9, #1
@@ -334,7 +334,7 @@ ARM Macro Assembler    Page 6
   261 00000208 1AFFFFF2        BNE              topLoop
   262 0000020C         endTopLoop
   263 0000020C         
-  264 0000020C E59F840C        LDR              R8, =radius
+  264 0000020C E59F83F8        LDR              R8, =radius
   265 00000210 E5988000        LDR              R8, [R8]
   266 00000214 E1A0600A        MOV              R6, R10
   267 00000218 E1A0700B        MOV              R7, R11
@@ -352,7 +352,7 @@ ARM Macro Assembler    Page 6
   279 00000240 AA000005        BGE              bottomFinally
   280 00000244 E1A00006        MOV              R0, R6      ;
   281 00000248 E1A01007        MOV              R1, R7      ;
-  282 0000024C E59F23C8        LDR              R2, =copyAddress ;
+  282 0000024C E59F23B4        LDR              R2, =copyAddress ;
   283 00000250 EBFFFF6A        BL               getPixel    ; 
   284 00000254 E52D0004        PUSH             {R0}
   285 00000258 E2899001        ADD              R9, R9, #1
@@ -399,9 +399,9 @@ ARM Macro Assembler    Page 7
   318 000002A4         ; Parameters:
   319 000002A4         ; R0 = RGB
   320 000002A4 E92D400E        PUSH             {R1, R2, R3, LR}
-  321 000002A8 E59F2374        LDR              R2, =contrast
+  321 000002A8 E59F2360        LDR              R2, =contrast
   322 000002AC E5922000        LDR              R2, [R2]
-  323 000002B0 E59F3370        LDR              R3, =brightness
+  323 000002B0 E59F335C        LDR              R3, =brightness
   324 000002B4 E5933000        LDR              R3, [R3]
   325 000002B8 E92D000C        PUSH             {R2, R3}    ; save link registe
                                                             r and pass paramter
@@ -553,7 +553,7 @@ ARM Macro Assembler    Page 9
   443 00000408         
   444 00000408 E3A018FF        LDR              R1, =redMask
   445 0000040C EBFFFF0B        BL               getValueFromMask
-  446 00000410 E59FC218        LDR              R12, =299
+  446 00000410 E59FC204        LDR              R12, =299
   447 00000414 E1A01000        MOV              R1, R0
   448 00000418 E0000C91        MUL              R0, R1, R12
   449 0000041C E0833000        ADD              R3, R3, R0
@@ -561,7 +561,7 @@ ARM Macro Assembler    Page 9
   451 00000420 E1A00002        MOV              R0, R2
   452 00000424 E3A01CFF        LDR              R1, =greenMask
   453 00000428 EBFFFF04        BL               getValueFromMask
-  454 0000042C E59FC200        LDR              R12, =587
+  454 0000042C E59FC1EC        LDR              R12, =587
   455 00000430 E1A01000        MOV              R1, R0
   456 00000434 E0000C91        MUL              R0, R1, R12
   457 00000438 E0833000        ADD              R3, R3, R0
@@ -601,7 +601,7 @@ ARM Macro Assembler    Page 10
   485 00000480 E92D4E1F        PUSH             {r0, r1, R2, R3, R4, R9, R10, R
 11, LR}
   486 00000484         
-  487 00000484 E3A0400A        LDR              R4, =lensq
+  487 00000484 E3A04014        LDR              R4, =lensq
   488 00000488 EBFFFFFE        BL               getPicHeight
   489 0000048C E1A000A0        LSR              R0, R0, #1
   490 00000490 E1A02000        MOV              R2, R0
@@ -741,7 +741,7 @@ ARM Macro Assembler    Page 12
   605 000005B4         
   606 000005B4 E3510000        CMP              R1, #0      ;         ;if Divis
                                                             or == 0
-  607 000005B8 059F0078        LDREQ            R0, =-1     ;load -1 into remai
+  607 000005B8 059F0064        LDREQ            R0, =-1     ;load -1 into remai
                                                             nder
   608 000005BC 01A02000        MOVEQ            R2, R0      ;load -1 into quoti
                                                             ent
@@ -791,32 +791,29 @@ ARM Macro Assembler    Page 13
   636 00000604         
   637 00000604         ;LDR R0, =applyAdjust
   638 00000604         ;BL applyToAll
-  639 00000604 E59F0030        LDR              R0, =copy
-  640 00000608 EBFFFEC5        BL               applyToAll
-  641 0000060C         ;LDR R0, =applyMotionBlur
-  642 0000060C         ;BL applyToAll
-  643 0000060C E59F002C        LDR              R0, =lensEffectCopy
-  644 00000610 EBFFFEC3        BL               applyToAll
-  645 00000614         ;LDR R0, = applyGreyScale
-  646 00000614         ;BL applyToAll
-  647 00000614 EBFFFFFE        BL               putPic      ; re-display the up
-                                                            dated image
-  648 00000618         
-  649 00000618 EAFFFFFE 
+  639 00000604         ;LDR R0, =copy
+  640 00000604         ;BL applyToAll
+  641 00000604         ;LDR R0, =applyMotionBlur
+  642 00000604         ;BL applyToAll
+  643 00000604         ;LDR R0, =lensEffectCopy
+  644 00000604         ;BL applyToAll
+  645 00000604         ;LDR R0, = applyGreyScale
+  646 00000604         ;BL applyToAll
+  647 00000604         ;BL putPic  ; re-display the updated image
+  648 00000604         
+  649 00000604 EAFFFFFE 
                        stop    B                stop
-  650 0000061C         
-  651 0000061C         ;<----------------Memory--------------->
-  652 0000061C         
-  653 0000061C A1016300 
+  650 00000608         
+  651 00000608         ;<----------------Memory--------------->
+  652 00000608         
+  653 00000608 A1016300 
               00000000 
               00000000 
               00000000 
               00000000 
               0000012B 
               0000024B 
-              FFFFFFFF 
-              00000000 
-              00000000         AREA             Variables, DATA, READWRITE
+              FFFFFFFF         AREA             Variables, DATA, READWRITE
   654 00000000         
   655 00000000 00000002 
                        radius  DCD              2
@@ -918,9 +915,8 @@ Symbol: applyToAll
    Definitions
       At line 175 in file BonusEffect.s
    Uses
-      At line 640 in file BonusEffect.s
-      At line 644 in file BonusEffect.s
-
+      None
+Comment: applyToAll unused
 averageColor 00000388
 
 Symbol: averageColor
@@ -964,13 +960,13 @@ Symbol: clear_stack
    Uses
       At line 308 in file BonusEffect.s
 Comment: clear_stack used once
+col_whl 00000150
 
 
 
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Relocatable symbols
 
-col_whl 00000150
 
 Symbol: col_whl
    Definitions
@@ -984,8 +980,8 @@ Symbol: copy
    Definitions
       At line 111 in file BonusEffect.s
    Uses
-      At line 639 in file BonusEffect.s
-Comment: copy used once
+      None
+Comment: copy unused
 distanceSqr 0000056C
 
 Symbol: distanceSqr
@@ -1029,13 +1025,13 @@ Symbol: endAlignLoop
       At line 617 in file BonusEffect.s
    Uses
       At line 613 in file BonusEffect.s
+Comment: endAlignLoop used once
 
 
 
 ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Relocatable symbols
 
-Comment: endAlignLoop used once
 endBottomLoop 00000264
 
 Symbol: endBottomLoop
@@ -1094,13 +1090,13 @@ Symbol: end_division_whl
 Comment: end_division_whl used once
 end_row_whl 00000168
 
+Symbol: end_row_whl
 
 
 
 ARM Macro Assembler    Page 5 Alphabetic symbol ordering
 Relocatable symbols
 
-Symbol: end_row_whl
    Definitions
       At line 200 in file BonusEffect.s
    Uses
@@ -1159,13 +1155,13 @@ Symbol: getValueFromMask
    Definitions
       At line 70 in file BonusEffect.s
    Uses
+      At line 329 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 6 Alphabetic symbol ordering
 Relocatable symbols
 
-      At line 329 in file BonusEffect.s
       At line 337 in file BonusEffect.s
       At line 346 in file BonusEffect.s
       At line 407 in file BonusEffect.s
@@ -1187,8 +1183,8 @@ Symbol: lensEffectCopy
    Definitions
       At line 134 in file BonusEffect.s
    Uses
-      At line 643 in file BonusEffect.s
-Comment: lensEffectCopy used once
+      None
+Comment: lensEffectCopy unused
 normalize_origin 00000480
 
 Symbol: normalize_origin
@@ -1224,13 +1220,13 @@ Symbol: row_whl
    Definitions
       At line 186 in file BonusEffect.s
    Uses
+      At line 199 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 7 Alphabetic symbol ordering
 Relocatable symbols
 
-      At line 199 in file BonusEffect.s
 Comment: row_whl used once
 setMaskWhile 00000064
 
@@ -1267,7 +1263,7 @@ Symbol: start
    Uses
       At line 8 in file BonusEffect.s
 Comment: start used once
-stop 00000618
+stop 00000604
 
 Symbol: stop
    Definitions
@@ -1289,13 +1285,13 @@ topLoop 000001D8
 Symbol: topLoop
    Definitions
       At line 247 in file BonusEffect.s
+   Uses
 
 
 
 ARM Macro Assembler    Page 8 Alphabetic symbol ordering
 Relocatable symbols
 
-   Uses
       At line 261 in file BonusEffect.s
 Comment: topLoop used once
 48 symbols
@@ -1385,7 +1381,7 @@ Symbol: lensn
    Uses
       None
 Comment: lensn unused
-lensq 0000000A
+lensq 00000014
 
 Symbol: lensq
    Definitions
@@ -1483,7 +1479,7 @@ Symbol: putPic
    Definitions
       At line 5 in file BonusEffect.s
    Uses
-      At line 647 in file BonusEffect.s
-Comment: putPic used once
+      None
+Comment: putPic unused
 5 symbols
 404 symbols in table

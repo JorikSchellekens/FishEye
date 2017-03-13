@@ -14,123 +14,131 @@ blueMask 	EQU 0x000000FF
 xhalf		EQU 40
 yhalf		EQU 49
 lensn		EQU 1
-lensq		EQU 10
+lensq		EQU 20
 
 
 
 ;<--------------Pixel Manipulation-------------->
 getPixel			; address, RGBval = getPixel(row, col)
 	; Parameters:
-	; R0 = row
-	; R1 = column
-	; R2 = image address
-	; Stack must be cleared by caller
+	; 				R0 = row
+	; 				R1 = column
+	; 				R2 = image address
 	; Returns:
-	; R0 = RGBvalue
+	; 				R0 = RGBvalue
+
 	STMFD SP!, {LR}
 
-	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
-	LDR R0, [R2, R0, LSL #2]; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
+	BL rowColToIndex					; addressOffset = rowColToIndex(row, col)
+	LDR R0, [R2, R0, LSL #2]			; RGBvalue = Memmory.word(pictureaddress + addressOffset * 4)
 	
 	LDMFD SP!, {LR}
-	BX LR
+	BX LR								; return RGB
+
 
 putPixel
 	; Stores a given RGB to a pixel at row, col
-	; Parameters
-	; R0 = row
-	; R1 = col
-	; R2 = picture address
-	; R3 = RGB
-	; Stack must be cleared by caller
+	; Parameters:
+	; 				R0 = row
+	; 				R1 = col
+	; 				R2 = picture address
+	; 				R3 = RGB
 
 	STMFD SP!, {LR}
 	
-	BL rowColToIndex		; addressOffset = rowColToIndex(row, col)
-	STR R3, [R2, R0, LSL #2]; Memory.word(pictureAddress + addressOffset * 4) = RGB
+	BL rowColToIndex					; addressOffset = rowColToIndex(row, col)
+	STR R3, [R2, R0, LSL #2]			; Memory.word(pictureAddress + addressOffset * 4) = RGB
 	
 	LDMFD SP!, {LR}
 	BX LR
 
+
 rowColToIndex
 	; converts row and colum to index
-	; Parameters
-	; R0 = row
-	; R1 = col
-	; Stack must be cleared by caller
+	; Parameters:
+	; 				R0 = row
+	; 				R1 = col
 	; Return Values
-	; R0 addressIndex
+	; 				R0 addressIndex
 	PUSH {R2, LR}
 	MOV R2, R0
-	BL getPicWidth
-	MLA R0, R2, R0, R1	; addressOffset = row * width + col 
+
+	BL getPicWidth						; width = getPicWidth
+	MLA R0, R2, R0, R1					; addressOffset = row * width + col 
+
 	POP {R2, LR}
 	BX LR
 	
+
 getValueFromMask
 	; Gets the color value under a congruent mask
 	; Expects masks of type FF
 	; eg mask 00FF0000 will return the value under FF in this case the value of red
-	; Parameters
-	; R0 = RGB
-	; R1 = mask
-	; Return Values
-	; R1 = mask
-	; R0 = colorValue
-	AND R0, R0, R1		; value = RGB & mask
+	; Parameters:
+	; 				R0 = RGB
+	;				 R1 = mask
+	; Return Values:
+	; 				R1 = mask
+	; 				R0 = colorValue
+	AND R0, R0, R1						; value = RGB & mask
 	PUSH {R1}
 getMaskWhile	
-	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
-	BCS endGetMaskWhile	; {
-	LSR R0, R0, #4		;	value >> 4
-	B getMaskWhile		; }
+	LSRS R1, R1, #4						; while (mask >> 4 doesn't carry)
+	BCS endGetMaskWhile					; {
+	LSR R0, R0, #4						;	value >> 4
+	B getMaskWhile						; }
 endGetMaskWhile			
 	POP {R1}
 	BX LR
 	
+
 setValueFromMask
 	; Sets the color value under a congruent mask
 	; Expects masks of type FF
 	; Takes in a value and a location in form FF
-	; Parameters
-	; R0 = RGB
-	; R1 = mask
-	; R2 = colorValue
-	; Return Values
-	; R0 = RGB
-	BIC R0, R0, R1		; RGB = RGB & mask // remove color
+	; Parameters:
+	; 				R0 = RGB
+	; 				R1 = mask
+	; 				R2 = colorValue
+	; Return Values:
+	; 				R0 = RGB
+	BIC R0, R0, R1						; RGB = RGB & mask // remove color
 setMaskWhile	
-	LSRS R1, R1, #4		; while (mask >> 4 doesn't carry)
-	BCS endSetMaskWhile	; {
-	LSL R2, R2, #4		;	value >> 4
-	B setMaskWhile		; }
-endSetMaskWhile			;
-	ADD R0, R0, R2		; RGB = RGB + value
+	LSRS R1, R1, #4						; while (mask >> 4 doesn't carry)
+	BCS endSetMaskWhile					; {
+	LSL R2, R2, #4						;	value >> 4
+	B setMaskWhile						; }
+endSetMaskWhile							;
+	ADD R0, R0, R2						; RGB = RGB + value
 	BX LR
 
-copy
-	; Copies between the original and duplicate image locations
+
+copy																	; copy(row, col)
+	; Copies a pixel between the original and duplicate image locations
 	; Parameters:
 	; 				R0 = row
 	;				R1 = col
-	PUSH {R0, R1, R2, R3, R6, R7, LR}
-	MOV R6, R0
-	MOV R7, R1
+
+	; TODO: Currently the function uses hard coded address but it should be updated to take source and destination address.
+	PUSH {R0, R1, R2, R3, R6, R7, LR}									; save register contents
+	MOV R6, R0															; save row
+	MOV R7, R1															; save col
 	
-	BL getPicAddr
-	MOV R2, R0
-	MOV R0, R6
-	MOV R1, R7
-	BL getPixel
+	BL getPicAddr														; originalAddress = getPicAddr()
+	MOV R2, R0															; 
+	MOV R0, R6															;
+	MOV R1, R7															;
+	BL getPixel															; pixel = getPixel(row, col, originalAddress)
 	
-	MOV R3, R0
-	MOV R0, R6
-	LDR R2, =copyAddress
-	BL putPixel 
+	MOV R3, R0															;
+	MOV R0, R6															;
+	LDR R2, =copyAddress												;
+	BL putPixel 														; putPixel(row, col, copyAddress)
 	
-	POP {R0, R1, R2, R3, R6, R7, LR}
+	POP {R0, R1, R2, R3, R6, R7, LR}									; restor register contents
 	BX LR
 	
+
 lensEffectCopy
 	PUSH {R0, R1, R2, R3, R4, R6, R7, LR}
 	MOV R6, R0		;
@@ -154,6 +162,7 @@ lensEffectCopy
 	POP {R0, R1, R2, R3, R4, R6, R7, LR}
 	BX LR
 	
+
 applyGreyScale
 	; Wrapper to apply greyscale to original
 	; Parameters:
@@ -172,6 +181,7 @@ applyGreyScale
 	POP {R0, R1, R2, R3, R4, LR}
 	BX LR
 	
+
 applyToAll
 	; Loops through all (row, col) combinations and executes the given subroutine.
 	; Paramenters:
@@ -222,6 +232,7 @@ applyAdjust
 	POP {R0, R1, R2, R3, R4, LR}
 	BX LR
 	
+
 applyMotionBlur
 	; Parameters:
 	; 				R0 = row
@@ -636,15 +647,15 @@ start
 
 	;LDR R0, =applyAdjust
 	;BL applyToAll
-	LDR R0, =copy
-	BL applyToAll
+	;LDR R0, =copy
+	;BL applyToAll
 	;LDR R0, =applyMotionBlur
 	;BL applyToAll
-	LDR R0, =lensEffectCopy
-	BL applyToAll
+	;LDR R0, =lensEffectCopy
+	;BL applyToAll
 	;LDR R0, = applyGreyScale
 	;BL applyToAll
-	BL	putPic		; re-display the updated image
+	;BL	putPic		; re-display the updated image
 	
 stop	B	stop
 
