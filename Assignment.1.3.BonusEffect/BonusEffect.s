@@ -497,7 +497,7 @@ greyScale ; Converts a pixel to a light intensity value and generates a grey ima
 convert_to_pixel
 	MOV R0, R1															;		
 	LDR R1, =0x00010101	
-	MUL R0, R0, R1														; pixel = lightIntensity * rgb location identifier **0x00010101**
+	MUL R0, R1, R0														; pixel = lightIntensity * rgb location identifier **0x00010101**
 	
 	POP {R1, R2, R3, R4, LR}
 	BX LR
@@ -640,14 +640,14 @@ divide																;division loop, leaves Quotient in R1 and Remainder in R0
 alignLoop															;else
 	CMP R0, R1														;while dividend>divisor
 	BLT endAlignLoop												;{
-	LSL R1, #1 														;	multiply divisor by 2
-	LSL R3, #1														;	multiply placeholder by 2
+	LSL R1, R1, #1 														;	multiply divisor by 2
+	LSL R3, R3, #1														;	multiply placeholder by 2
 	B alignLoop														;}
 endAlignLoop
 
 division_whl														;{
-	LSR R1, #1 														;divide divisor by 2
-	LSRS R3, #1														;divide r3 by 2 and set flag
+	LSR R1, R1, #1 														;divide divisor by 2
+	LSRS R3, R3, #1														;divide r3 by 2 and set flag
 	BCS end_division_whl											;while carry flag not set{ 
 	CMP R0, R1														;	if(dividend>=divisor):
 	SUBHS R0, R0, R1												;		subtract dividend from divisor
