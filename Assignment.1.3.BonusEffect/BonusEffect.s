@@ -19,11 +19,11 @@ lensq		EQU 20
 
 
 ;<--------------Pixel Manipulation-------------->
-getPixel			; address, RGBval = getPixel(row, col)
+getPixel ; RGBval = getPixel(row, col, imageAddress)
 	; Parameters:
 	; 				R0 = row
 	; 				R1 = column
-	; 				R2 = image address
+	; 				R2 = imageAddress
 	; Returns:
 	; 				R0 = RGBvalue
 
@@ -36,7 +36,7 @@ getPixel			; address, RGBval = getPixel(row, col)
 	BX LR																; return RGB
 
 
-putPixel
+putPixel ; putPixel(row, col, imageAddress)
 	; Stores a given RGB to a pixel at row, col
 	; Parameters:
 	; 				R0 = row
@@ -76,7 +76,7 @@ getValueFromMask
 	; eg mask 00FF0000 will return the value under FF in this case the value of red
 	; Parameters:
 	; 				R0 = RGB
-	;				 R1 = mask
+	;				R1 = mask
 	; Return Values:
 	; 				R1 = mask
 	; 				R0 = colorValue
@@ -381,6 +381,7 @@ adjustPixelColor	; adjustedVal = adjustPixel(value, contrast, brightness)
 	
 adjustColor	; val = adjustColor(color, contrast, brightness)
 	; applies the brightness contrast formula
+	; If the conrast is negative the picture will be inverted and the relevant contrast applied.
 	; Paramters:
 	; 				R2 = color
 	; 				Stack > contrast, brightness that order.
@@ -390,8 +391,9 @@ adjustColor	; val = adjustColor(color, contrast, brightness)
 	STMFD SP!, {R4, R5}
 	LDR R4, [SP, #8]													; contrast = stack.getParameter()
 	LDR R5, [SP, #12]													; brightness = stack.getParameter()
-	MUL R2, R4, R2														; color *= contrast
-	LSR R2, R2, #4														; color /= 16
+	MULS R2, R4, R2														; color *= contrast
+	ASR R2, R2, #4														; color /= 16
+	ADDMI R2, R2, #255													; invert color if contrast was negative
 	ADDS R2, R2, R5														; color += brightness
 	LDRMI R2, =0														; if (color < 0): color = 0
 	CMP R2, #255														; else if (color > 255):
@@ -662,27 +664,39 @@ div_zero
 	
 ;<-----------------Main---------------->
 start
-
-	;LDR R0, =applyAdjust
-	;BL applyToAll
+	; Uncomment any block to see effect.
+	
+	;<------Adjust------>
+	LDR R0, =applyAdjust
+	BL applyToAll
+	
+	;<----MotionBlur---->
 	;LDR R0, =copy
 	;BL applyToAll
 	;LDR R0, =applyMotionBlur
 	;BL applyToAll
+	
+	;<----LensEffect---->
+	;LDR R0, =copy
+	;BL applyToAll
 	;LDR R0, =lensEffectCopy
 	;BL applyToAll
+	
+	;<-----GreyScale---->
 	;LDR R0, = applyGreyScale
 	;BL applyToAll
-	;BL	putPic		; re-display the updated image
+	
+	
+	; Display results:
+	BL	putPic
 	
 stop	B	stop
 
 ;<----------------Memory--------------->
 
 	AREA Variables, DATA, READWRITE
-	
 radius DCD 2
-contrast DCD 17
-brightness DCD 100
+contrast DCD 22
+brightness DCD 22
 
 	END

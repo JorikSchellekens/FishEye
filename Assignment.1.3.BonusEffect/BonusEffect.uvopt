@@ -145,7 +145,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>UL2ARM</Key>
-          <Name>-UV0304MAE -O14 -S135 -C0 -N00("ARM7TDMI-S Core") -D00(4F1F0F0F) -L00(4) -FO15 -FD40000000 -FC800 -FN1 -FF0LPC_IAP2_512 -FS00 -FL07E000</Name>
+          <Name>-UV0593MAE -O14 -S135 -C0 -N00("ARM7TDMI-S Core") -D00(4F1F0F0F) -L00(4) -FO15 -FD40000000 -FC800 -FN1 -FF0LPC_IAP2_512 -FS00 -FL07E000</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
       <Breakpoint/>
@@ -395,7 +395,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>657</TopLine>
+      <TopLine>674</TopLine>
       <CurrentLine>703</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\LCD\lcd_grph.c</PathWithFileName>
@@ -411,7 +411,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>187</TopLine>
+      <TopLine>190</TopLine>
       <CurrentLine>216</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\LCD\lcd_hw.c</PathWithFileName>
@@ -611,8 +611,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>608</TopLine>
-      <CurrentLine>649</CurrentLine>
+      <TopLine>664</TopLine>
+      <CurrentLine>670</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\BonusEffect.s</PathWithFileName>
       <FilenameWithoutPath>BonusEffect.s</FilenameWithoutPath>
