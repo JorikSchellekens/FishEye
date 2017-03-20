@@ -176,8 +176,6 @@ The functions are called for all valid combinations of (*row*, *col*) using the 
 | R0       | row     |
 | R1       | col     |
 
-
-
 Note: Most of the wrappers use a hardcoded value for the *'copy address'* which is the start of an empty space to which the image can be coppied to. My original idea was to keep all relevant pixels in registers or on the stack but this proved to be a little too complicated for my current implementation which tends to have a number of the registers locked up for reference values.
 
 Quick outline of wrappers:
@@ -201,6 +199,28 @@ Calculates the motion blur value for a pixel in the copied image and updates it 
 #### lensEffectCopy(*row*, *col*)
 
 Calculates the *'ransformed*(*row*, *col*) value, takes the pixel from the copied image and changes the actual (*row*, *col*) pixel to that one.
+
+----
+
+### Misk
+
+#### divide(*numerator*, *denominator*)
+
+Implements a fast shifting divide function.
+
+##### Parameters:
+
+| REGISTER | CONTENT     |
+| -------- | ----------- |
+| R0       | numerator   |
+| R1       | denominator |
+
+##### Return values:
+
+| REGISTER | CONTENT   |
+| -------- | --------- |
+| R0       | remainder |
+| R1       | quotient  |
 
 ----
 
@@ -355,4 +375,110 @@ Py = (α * Py') / ||P||
 
 Where alpha is some coeficient. For ``α > 0`` the image is magnified from the center. For ``α < 0`` the image undergoes an efect called *Pincushion Distortion* where the image appears to shrink as it nears the center.
 
-For the formulas above I had to implement a *square root* function. My square root implement Newton's method for integer square root approximation. It is an iterative formula which works by 
+``||P||`` is the distance of the pixel from the center of the image. Simply calculated using ``sqrt(x^2 + y ^2)``
+
+For the formulas above I had to implement a *square root* function to find the distance from the center. My square root implement Newton's method for integer square root approximation. It is an iterative formula:
+
+````
+x = (x' + S/x')/2
+````
+
+Where S is the original integer and x is an approximation for the square root. We can stop when ``x - x' < 1`` . If x is an overestimation of the square root ``S/x`` can be assumed to be less than the square root. As such the mean of ``x`` and ``S/x`` is a closer approximation to the square root. We keep applying this until the value of ``x`` changes by 1 or less.
+
+````assembly
+	MOV R11, R0						; save number
+	LDR R3, =0						; temp = 0
+	MOV R2, R0 						; x = S
+	
+find_sqr_whl						; while (previous x != next x) {
+	LSR R2, R2, #1					; 	x /= 2
+	SUBS R4, R2, R3
+	BEQ end_sqr_whl					;									return x
+	CMP R4, #1
+	BEQ end_sqr_whl
+	MOV R3, R2						; 	temp = x
+	MOV R1, R2						; 
+	MOV R0, R11						;
+	BL divide						; 
+	ADD R2, R2, R1					; 	x = x + divide(number, x)
+	B find_sqr_whl
+end_sqr_whl
+
+	MOV R0, R2
+````
+
+
+
+Before the processing begane the row and col indexes had to be normalised to a coordinate system where the origin was in the center of the image as such:
+
+|        | -4    | -3    | -2    | -1    | 0     | 1     | 2     | 3     | 4     |
+| ------ | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| **4**  | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **3**  | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **2**  | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **1**  | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **0**  | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **-1** | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **-2** | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **-3** | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+| **-4** | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel | pixel |
+
+This is simply achieved by:
+
+````
+x = col - width
+````
+
+````
+y = row - y
+````
+
+ Now we can calculate magnitudes using (0, 0) as the center of the image.
+
+#### sqrt(*number*)
+
+Aproximates the square root of a number.
+
+##### Parameters:
+
+| REGISTER | CONTENT |
+| -------- | ------- |
+| R0       | number  |
+
+##### Return values:
+
+| REGISTER | CONTENT    |
+| -------- | ---------- |
+| R0       | squareRoot |
+
+
+
+#### distanceSQR(*y*, *x*)
+
+Finds the square of the distance of an (x, y) value from the origin. Return ``x^2 + y^2``
+
+##### Parameters:
+
+| REGISTER | CONTENT |
+| -------- | ------- |
+| R0       | y       |
+| R1       | x       |
+
+##### Return values:
+
+| REGISTER | CONTENT        |
+| -------- | -------------- |
+| R0       | squareDistance |
+
+
+
+#### applyLens(*row*, *col*)
+
+Wrapper for applying the lens effect to a pixel. Takes a pixel coordinate, normalises it as follows:
+
+````assembly
+	SUB R0, R0, R2					; y -= centery
+	SUB R1, R1, R3					; x -= centery
+````
+
+Then transforms it using the formulas above. It retrieves the pixel from the copied image at the transformed coordinate and update the original pixel to this value.

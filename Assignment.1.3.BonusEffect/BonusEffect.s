@@ -569,7 +569,7 @@ denormalise_y_x
 	
 ;<---------------Square root methods---------------->
 	
-sqrt
+sqrt	; sqrt(number)
 	; Finds the square root of a number
 	; Parameters:
 	;		R0 = number
