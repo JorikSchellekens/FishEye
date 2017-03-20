@@ -269,9 +269,9 @@ applyMotionBlur
 		; These two loops can easily be optimised.
 	BL getPixel															; pixel = getPixel(row, col, copyAddress) 
 	PUSH {R0}															; stackParams.append(pixel)
-	CMP R6, #0
+	CMP R8, #0
 topLoop																	; for (radius; radius > 0; radius--) {
-	BMI endTopLoop														
+	BLE endTopLoop														
 	SUBS R6, R6, #1														; 	varRow--
 	BMI topFinally														; 	if (varRow out of bounds) break
 	SUBS R7, R7, #1														; 	varCol--
@@ -292,9 +292,9 @@ endTopLoop
 	MOV R6, R10															; varRow = row 
 	MOV R7, R11															; varCol = col
 	
-	CMP R6, #0
+	CMP R8, #0
 bottomLoop																; for (radius; radius > 0; radius--) {
-	BMI endBottomLoop													; 	varRow++
+	BLE endBottomLoop													; 	varRow++
 	ADD R6, R6, #1														
 	BL getPicHeight														
 	CMP R6, R0															
@@ -667,8 +667,8 @@ start
 	; Uncomment any block to see effect.
 	
 	;<------Adjust------>
-	LDR R0, =applyAdjust
-	BL applyToAll
+	;LDR R0, =applyAdjust
+	;BL applyToAll
 	
 	;<----MotionBlur---->
 	;LDR R0, =copy

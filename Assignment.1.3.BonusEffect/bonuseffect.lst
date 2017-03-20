@@ -189,7 +189,7 @@ ARM Macro Assembler    Page 3
   132 0000009C         
   133 0000009C E1A03000        MOV              R3, R0      ;
   134 000000A0 E1A00006        MOV              R0, R6      ;
-  135 000000A4 E59F2560        LDR              R2, =copyAddress ;
+  135 000000A4 E59F2568        LDR              R2, =copyAddress ;
   136 000000A8 EBFFFFD9        BL               putPixel    ; putPixel(row, col
                                                             , copyAddress)
   137 000000AC         
@@ -229,7 +229,7 @@ ARM Macro Assembler    Page 4
   157 000000C8 E1A00006        MOV              R0, R6      ;
   158 000000CC EB0000E9        BL               applyLens   ; row, col = applyL
                                                             ens(row, col)
-  159 000000D0 E59F2534        LDR              R2, =copyAddress ;
+  159 000000D0 E59F253C        LDR              R2, =copyAddress ;
   160 000000D4 EBFFFFC9        BL               getPixel    ; pixel = getPixel(
                                                             row, col, copyAddre
                                                             ss)
@@ -381,7 +381,7 @@ ARM Macro Assembler    Page 6
   256 000001AC E3A09001        LDR              R9, =1      ; stackCount = 1 (c
                                                             urrent pixel)
   257 000001B0         ; stackParams = []
-  258 000001B0 E59F8458        LDR              R8, =radius ;
+  258 000001B0 E59F8460        LDR              R8, =radius ;
   259 000001B4 E5988000        LDR              R8, [R8]    ; radius = Memory.w
                                                             ord(radiusAddress)
   260 000001B8 E1A0A000        MOV              R10, R0     ; save row 
@@ -396,7 +396,7 @@ ARM Macro Assembler    Page 7
 
   264 000001C4 E1A07001        MOV              R7, R1      ; varCol = col
   265 000001C8         
-  266 000001C8 E59F243C        LDR              R2, =copyAddress ;
+  266 000001C8 E59F2444        LDR              R2, =copyAddress ;
   267 000001CC         
   268 000001CC         
   269 000001CC         ; These two loops can easily be optimised.
@@ -405,11 +405,11 @@ ARM Macro Assembler    Page 7
                                                             ss) 
   271 000001D0 E52D0004        PUSH             {R0}        ; stackParams.appen
                                                             d(pixel)
-  272 000001D4 E3560000        CMP              R6, #0
+  272 000001D4 E3580000        CMP              R8, #0
   273 000001D8         topLoop                              ; for (radius; radi
                                                             us > 0; radius--) {
                                                             
-  274 000001D8 4A00000B        BMI              endTopLoop
+  274 000001D8 DA00000B        BLE              endTopLoop
   275 000001DC E2566001        SUBS             R6, R6, #1  ;  varRow--
   276 000001E0 4A000007        BMI              topFinally  ;  if (varRow out o
                                                             f bounds) break
@@ -418,7 +418,7 @@ ARM Macro Assembler    Page 7
                                                              bounds) break
   279 000001EC E1A00006        MOV              R0, R6      ;
   280 000001F0 E1A01007        MOV              R1, R7      ;
-  281 000001F4 E59F2410        LDR              R2, =copyAddress ;   
+  281 000001F4 E59F2418        LDR              R2, =copyAddress ;   
   282 000001F8 EBFFFF80        BL               getPixel    ;  pixel = getPixel
                                                             (row, col, copyAddr
                                                             ess)
@@ -430,17 +430,17 @@ ARM Macro Assembler    Page 7
   287 00000208 1AFFFFF2        BNE              topLoop     ; }
   288 0000020C         endTopLoop
   289 0000020C         
-  290 0000020C E59F83FC        LDR              R8, =radius
+  290 0000020C E59F8404        LDR              R8, =radius
   291 00000210 E5988000        LDR              R8, [R8]    ; radius = Memory.w
                                                             ord(radiusAddress)
   292 00000214 E1A0600A        MOV              R6, R10     ; varRow = row 
   293 00000218 E1A0700B        MOV              R7, R11     ; varCol = col
   294 0000021C         
-  295 0000021C E3560000        CMP              R6, #0
+  295 0000021C E3580000        CMP              R8, #0
   296 00000220         bottomLoop                           ; for (radius; radi
                                                             us > 0; radius--) {
                                                             
-  297 00000220 4A00000F        BMI              endBottomLoop ;  varRow++
+  297 00000220 DA00000F        BLE              endBottomLoop ;  varRow++
   298 00000224 E2866001        ADD              R6, R6, #1
   299 00000228 EBFFFFFE        BL               getPicHeight
   300 0000022C E1560000        CMP              R6, R0
@@ -459,7 +459,7 @@ ARM Macro Assembler    Page 7
 ARM Macro Assembler    Page 8 
 
 
-  308 0000024C E59F23B8        LDR              R2, =copyAddress ;
+  308 0000024C E59F23C0        LDR              R2, =copyAddress ;
   309 00000250 EBFFFF6A        BL               getPixel    ; pixel = getPixel(
                                                             row, col, copyAddre
                                                             ss)
@@ -512,11 +512,11 @@ ARM Macro Assembler    Page 8
                        meters.
   346 000002A4         
   347 000002A4 E92D400E        PUSH             {R1, R2, R3, LR}
-  348 000002A8 E59F2364        LDR              R2, =contrast
+  348 000002A8 E59F236C        LDR              R2, =contrast
   349 000002AC E5922000        LDR              R2, [R2]    ; contrast = Memory
                                                             .word(contrastAddre
                                                             ss)
-  350 000002B0 E59F3360        LDR              R3, =brightness
+  350 000002B0 E59F3368        LDR              R3, =brightness
   351 000002B4 E5933000        LDR              R3, [R3]    ; brightness = Memo
 
 
@@ -705,7 +705,7 @@ ARM Macro Assembler    Page 11
   471 0000040C EBFFFF0B        BL               getValueFromMask ; color = getV
                                                             alueFromMask(pixel,
                                                              redMask)
-  472 00000410 E59FC208        LDR              R12, =299   ; weighting = 299
+  472 00000410 E59FC210        LDR              R12, =299   ; weighting = 299
   473 00000414 E1A01000        MOV              R1, R0
   474 00000418 E0000C91        MUL              R0, R1, R12
   475 0000041C E0833000        ADD              R3, R3, R0  ; weightedTotal += 
@@ -721,7 +721,7 @@ ARM Macro Assembler    Page 12
 
   479 00000424 E3A01CFF        LDR              R1, =greenMask
   480 00000428 EBFFFF04        BL               getValueFromMask
-  481 0000042C E59FC1F0        LDR              R12, =587
+  481 0000042C E59FC1F8        LDR              R12, =587
   482 00000430 E1A01000        MOV              R1, R0
   483 00000434 E0000C91        MUL              R0, R1, R12
   484 00000438 E0833000        ADD              R3, R3, R0
@@ -743,7 +743,7 @@ ARM Macro Assembler    Page 12
   498 00000464         
   499 00000464         convert_to_pixel
   500 00000464 E1A00001        MOV              R0, R1      ;  
-  501 00000468 E59F11B8        LDR              R1, =0x00010101
+  501 00000468 E59F11C0        LDR              R1, =0x00010101
   502 0000046C E0000091        MUL              R0, R1, R0  ; pixel = lightInte
                                                             nsity * rgb locatio
                                                             n identifier **0x00
@@ -932,7 +932,7 @@ ARM Macro Assembler    Page 15
   636 000005AC         
   637 000005AC E3510000        CMP              R1, #0      ;              ;if 
                                                             Divisor == 0
-  638 000005B0 059F0074        LDREQ            R0, =-1     ;load -1 into remai
+  638 000005B0 059F007C        LDREQ            R0, =-1     ;load -1 into remai
                                                             nder
   639 000005B4 01A02000        MOVEQ            R2, R0      ;load -1 into quoti
                                                             ent
@@ -982,35 +982,35 @@ ARM Macro Assembler    Page 16
   667 000005FC         ; Uncomment any block to see effect.
   668 000005FC         
   669 000005FC         ;<------Adjust------>
-  670 000005FC E59F002C        LDR              R0, =applyAdjust
-  671 00000600 EBFFFEC7        BL               applyToAll
-  672 00000604         
-  673 00000604         ;<----MotionBlur---->
-  674 00000604         ;LDR R0, =copy
-  675 00000604         ;BL applyToAll
-  676 00000604         ;LDR R0, =applyMotionBlur
-  677 00000604         ;BL applyToAll
-  678 00000604         
-  679 00000604         ;<----LensEffect---->
-  680 00000604         ;LDR R0, =copy
-  681 00000604         ;BL applyToAll
-  682 00000604         ;LDR R0, =lensEffectCopy
-  683 00000604         ;BL applyToAll
-  684 00000604         
-  685 00000604         ;<-----GreyScale---->
-  686 00000604         ;LDR R0, = applyGreyScale
-  687 00000604         ;BL applyToAll
-  688 00000604         
-  689 00000604         
-  690 00000604         ; Display results:
-  691 00000604 EBFFFFFE        BL               putPic
-  692 00000608         
-  693 00000608 EAFFFFFE 
+  670 000005FC         ;LDR R0, =applyAdjust
+  671 000005FC         ;BL applyToAll
+  672 000005FC         
+  673 000005FC         ;<----MotionBlur---->
+  674 000005FC E59F0034        LDR              R0, =copy
+  675 00000600 EBFFFEC7        BL               applyToAll
+  676 00000604 E59F0030        LDR              R0, =applyMotionBlur
+  677 00000608 EBFFFEC5        BL               applyToAll
+  678 0000060C         
+  679 0000060C         ;<----LensEffect---->
+  680 0000060C         ;LDR R0, =copy
+  681 0000060C         ;BL applyToAll
+  682 0000060C         ;LDR R0, =lensEffectCopy
+  683 0000060C         ;BL applyToAll
+  684 0000060C         
+  685 0000060C         ;<-----GreyScale---->
+  686 0000060C         ;LDR R0, = applyGreyScale
+  687 0000060C         ;BL applyToAll
+  688 0000060C         
+  689 0000060C         
+  690 0000060C         ; Display results:
+  691 0000060C EBFFFFFE        BL               putPic
+  692 00000610         
+  693 00000610 EAFFFFFE 
                        stop    B                stop
-  694 0000060C         
-  695 0000060C         ;<----------------Memory--------------->
-  696 0000060C         
-  697 0000060C A1016300 
+  694 00000614         
+  695 00000614         ;<----------------Memory--------------->
+  696 00000614         
+  697 00000614 A1016300 
               00000000 
               00000000 
               00000000 
@@ -1019,6 +1019,7 @@ ARM Macro Assembler    Page 16
               0000024B 
               00010101 
               FFFFFFFF 
+              00000000 
               00000000         AREA             Variables, DATA, READWRITE
   698 00000000 00000002 
                        radius  DCD              2
@@ -1082,8 +1083,8 @@ Symbol: applyAdjust
    Definitions
       At line 223 in file BonusEffect.s
    Uses
-      At line 670 in file BonusEffect.s
-Comment: applyAdjust used once
+      None
+Comment: applyAdjust unused
 applyGreyScale 000000F4
 
 Symbol: applyGreyScale
@@ -1112,16 +1113,17 @@ Symbol: applyMotionBlur
    Definitions
       At line 247 in file BonusEffect.s
    Uses
-      None
-Comment: applyMotionBlur unused
+      At line 676 in file BonusEffect.s
+Comment: applyMotionBlur used once
 applyToAll 00000124
 
 Symbol: applyToAll
    Definitions
       At line 193 in file BonusEffect.s
    Uses
-      At line 671 in file BonusEffect.s
-Comment: applyToAll used once
+      At line 675 in file BonusEffect.s
+      At line 677 in file BonusEffect.s
+
 averageColor 00000388
 
 Symbol: averageColor
@@ -1165,13 +1167,13 @@ Symbol: clear_stack
    Uses
       At line 334 in file BonusEffect.s
 Comment: clear_stack used once
-col_whl 00000150
 
 
 
 ARM Macro Assembler    Page 3 Alphabetic symbol ordering
 Relocatable symbols
 
+col_whl 00000150
 
 Symbol: col_whl
    Definitions
@@ -1193,8 +1195,8 @@ Symbol: copy
    Definitions
       At line 116 in file BonusEffect.s
    Uses
-      None
-Comment: copy unused
+      At line 674 in file BonusEffect.s
+Comment: copy used once
 denormalise_y_x 000004F0
 
 Symbol: denormalise_y_x
@@ -1233,9 +1235,9 @@ Symbol: divide
 
 
 
-
 ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Relocatable symbols
+
 
 division_whl 000005D0
 
@@ -1295,13 +1297,13 @@ Symbol: endTopLoop
 Comment: endTopLoop used once
 end_col_whl 00000160
 
-Symbol: end_col_whl
 
 
 
 ARM Macro Assembler    Page 5 Alphabetic symbol ordering
 Relocatable symbols
 
+Symbol: end_col_whl
    Definitions
       At line 216 in file BonusEffect.s
    Uses
@@ -1360,13 +1362,13 @@ getPixel 00000000
 
 Symbol: getPixel
    Definitions
-      At line 22 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 6 Alphabetic symbol ordering
 Relocatable symbols
 
+      At line 22 in file BonusEffect.s
    Uses
       At line 131 in file BonusEffect.s
       At line 160 in file BonusEffect.s
@@ -1428,9 +1430,9 @@ Symbol: putPixel
 
 
 
-
 ARM Macro Assembler    Page 7 Alphabetic symbol ordering
 Relocatable symbols
+
 
 rowColToIndex 00000028
 
@@ -1484,19 +1486,19 @@ Symbol: start
    Uses
       At line 8 in file BonusEffect.s
 Comment: start used once
-stop 00000608
+stop 00000610
 
 Symbol: stop
    Definitions
       At line 693 in file BonusEffect.s
    Uses
-      At line 693 in file BonusEffect.s
 
 
 
 ARM Macro Assembler    Page 8 Alphabetic symbol ordering
 Relocatable symbols
 
+      At line 693 in file BonusEffect.s
 Comment: stop used once
 topFinally 00000204
 
