@@ -418,7 +418,7 @@ Image Symbol Table
     .text                                    0xa0001968   Section        0  __dclz77c.o(.text)
     MotionBlur                               0xa00019e8   Section     1600  bonuseffect.o(MotionBlur)
     copy                                     0xa0001a64   ARM Code       0  bonuseffect.o(MotionBlur)
-    applyMotionBlur                          0xa0001b90   ARM Code       0  bonuseffect.o(MotionBlur)
+    lensEffectCopy                           0xa0001a9c   ARM Code       0  bonuseffect.o(MotionBlur)
     i.__0printf$bare                         0xa0002038   Section        0  printfb.o(i.__0printf$bare)
     i.__ARM_common_call_via_r3               0xa0002050   Section        2  init.o(i.__ARM_common_call_via_r3)
     i.__ARM_common_call_via_r6               0xa0002052   Section        0  printfb.o(i.__ARM_common_call_via_r6)

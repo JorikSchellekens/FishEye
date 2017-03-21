@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\BonusEffect.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\BonusEffect.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5.03 [Build 76]: Last Updated: Mon Mar 20 20:32:16 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5.03 [Build 76]: Last Updated: Mon Mar 20 23:46:17 2017
 <BR><P>
 <H3>Maximum Stack Usage =         88 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -21,7 +21,7 @@ Functions with no stack information
  <LI><a href="#[5]">IRQ_Handler</a>
  <LI><a href="#[6]">FIQ_Handler</a>
  <LI><a href="#[9]">copy</a>
- <LI><a href="#[a]">applyMotionBlur</a>
+ <LI><a href="#[a]">lensEffectCopy</a>
 </UL>
 </UL>
 <P>
@@ -46,9 +46,9 @@ Function Pointers
  <LI><a href="#[2]">SWI_Handler</a> from lpc2400.o(RESET) referenced from lpc2400.o(RESET)
  <LI><a href="#[1]">Undef_Handler</a> from lpc2400.o(RESET) referenced from lpc2400.o(RESET)
  <LI><a href="#[c]">__main</a> from entry.o(.ARM.Collect$$$$00000000) referenced from lpc2400.o(RESET)
- <LI><a href="#[a]">applyMotionBlur</a> from bonuseffect.o(MotionBlur) referenced from bonuseffect.o(MotionBlur)
  <LI><a href="#[9]">copy</a> from bonuseffect.o(MotionBlur) referenced from bonuseffect.o(MotionBlur)
  <LI><a href="#[b]">fputc</a> from retarget.o(.text) referenced from printfb.o(i.__0printf$bare)
+ <LI><a href="#[a]">lensEffectCopy</a> from bonuseffect.o(MotionBlur) referenced from bonuseffect.o(MotionBlur)
  <LI><a href="#[8]">main</a> from main.o(.text) referenced from entry9a.o(.ARM.Collect$$$$0000000B)
 </UL>
 <P>
@@ -185,18 +185,16 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[2e]"></a>getPicAddr</STRONG> (ARM, 8 bytes, Stack size 0 bytes, lcd_grph.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;applyMotionBlur
+<BR><BR>[Called By]<UL><LI><a href="#[a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lensEffectCopy
 <LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;copy
 </UL>
 
 <P><STRONG><a name="[2f]"></a>getPicWidth</STRONG> (ARM, 12 bytes, Stack size 0 bytes, lcd_grph.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;applyMotionBlur
-<LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;copy
+<BR><BR>[Called By]<UL><LI><a href="#[a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lensEffectCopy
 </UL>
 
 <P><STRONG><a name="[30]"></a>getPicHeight</STRONG> (ARM, 12 bytes, Stack size 0 bytes, lcd_grph.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;applyMotionBlur
-<LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;copy
+<BR><BR>[Called By]<UL><LI><a href="#[a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lensEffectCopy
 </UL>
 
 <P><STRONG><a name="[22]"></a>mdelay</STRONG> (ARM, 80 bytes, Stack size 0 bytes, lcd_hw.o(.text))
@@ -410,13 +408,11 @@ Local Symbols
 <BR>[Address Reference Count : 1]<UL><LI> lpc2400.o(RESET)
 </UL>
 <P><STRONG><a name="[9]"></a>copy</STRONG> (ARM, 0 bytes, Stack size unknown bytes, bonuseffect.o(MotionBlur))
-<BR><BR>[Calls]<UL><LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicHeight
-<LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicWidth
-<LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicAddr
+<BR><BR>[Calls]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicAddr
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> bonuseffect.o(MotionBlur)
 </UL>
-<P><STRONG><a name="[a]"></a>applyMotionBlur</STRONG> (ARM, 0 bytes, Stack size unknown bytes, bonuseffect.o(MotionBlur))
+<P><STRONG><a name="[a]"></a>lensEffectCopy</STRONG> (ARM, 0 bytes, Stack size unknown bytes, bonuseffect.o(MotionBlur))
 <BR><BR>[Calls]<UL><LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicHeight
 <LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicWidth
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getPicAddr

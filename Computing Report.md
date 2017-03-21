@@ -1,6 +1,8 @@
-# Computing Report
+# Computing Report - Jorik Schellekens
 
 ## General Functions
+
+
 
 After considering a few of the challenges set out in the assignment I decided to write a suite of subroutines I thought would be universal. This set was mostly complete on the first revision.
 
@@ -202,7 +204,7 @@ Calculates the *transformed*(*row*, *col*) value, takes the pixel from the copie
 
 ----
 
-### Misk
+### Misc
 
 #### divide(*numerator*, *denominator*)
 
@@ -560,4 +562,4 @@ I've tested particular values for the radius.
 | ![Original](./original.png) | ![0](./Lens20.jpg) |  ![0](./Lens-20.jpg)  |
 |           Worked            |       Worked       | Worked but with error |
 
-For the pincushion effect we get an error where the values of the transformed y and x are out of bounds. In the x axis it causes a type of wrapping, in the y this causes access to memory that is completely zeroed and hence fills in black.
+For the pincushion effect we get an error where the values of the transformed ``y`` and ``x`` are out of bounds. In the ``x`` axis it causes a type of wrapping, in the ``y`` this causes access to memory that is completely zeroed and hence fills in black.

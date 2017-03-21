@@ -11,9 +11,7 @@ copyAddress	EQU 0xA1016300
 redMask 	EQU 0x00FF0000
 greenMask 	EQU 0x0000FF00
 blueMask 	EQU 0x000000FF
-xhalf		EQU 40
-yhalf		EQU 49
-lensn		EQU 1
+
 lensq		EQU 20
 
 
@@ -677,10 +675,10 @@ start
 	;BL applyToAll
 	
 	;<----LensEffect---->
-	;LDR R0, =copy
-	;BL applyToAll
-	;LDR R0, =lensEffectCopy
-	;BL applyToAll
+	LDR R0, =copy
+	BL applyToAll
+	LDR R0, =lensEffectCopy
+	BL applyToAll
 	
 	;<-----GreyScale---->
 	;LDR R0, = applyGreyScale
@@ -695,7 +693,7 @@ stop	B	stop
 ;<----------------Memory--------------->
 
 	AREA Variables, DATA, READWRITE
-radius DCD 2
+radius DCD 2				; radius = (expectedRaius - 1) / 2
 contrast DCD 22
 brightness DCD 22
 

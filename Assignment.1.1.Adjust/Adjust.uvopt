@@ -395,7 +395,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>664</TopLine>
+      <TopLine>658</TopLine>
       <CurrentLine>670</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\LCD\lcd_grph.c</PathWithFileName>
@@ -571,7 +571,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1528</TopLine>
+      <TopLine>1072</TopLine>
       <CurrentLine>1073</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\support\LPC2400.s</PathWithFileName>
@@ -609,10 +609,10 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>82</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>163</TopLine>
-      <CurrentLine>190</CurrentLine>
+      <TopLine>620</TopLine>
+      <CurrentLine>649</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\Adjust.s</PathWithFileName>
       <FilenameWithoutPath>Adjust.s</FilenameWithoutPath>

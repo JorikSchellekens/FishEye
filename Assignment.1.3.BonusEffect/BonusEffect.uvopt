@@ -153,9 +153,16 @@
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>R4</ItemText>
+          <ItemText>r2 + r0 * 4</ItemText>
         </Mm>
       </MemoryWindow1>
+      <MemoryWindow2>
+        <Mm>
+          <WinNumber>2</WinNumber>
+          <SubType>0</SubType>
+          <ItemText>0xa10</ItemText>
+        </Mm>
+      </MemoryWindow2>
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
@@ -395,8 +402,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>674</TopLine>
-      <CurrentLine>703</CurrentLine>
+      <TopLine>109</TopLine>
+      <CurrentLine>110</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\LCD\lcd_grph.c</PathWithFileName>
       <FilenameWithoutPath>lcd_grph.c</FilenameWithoutPath>
@@ -411,7 +418,7 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>190</TopLine>
+      <TopLine>193</TopLine>
       <CurrentLine>216</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\LCD\lcd_hw.c</PathWithFileName>
@@ -609,10 +616,10 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>4</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>664</TopLine>
-      <CurrentLine>670</CurrentLine>
+      <TopLine>649</TopLine>
+      <CurrentLine>687</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\BonusEffect.s</PathWithFileName>
       <FilenameWithoutPath>BonusEffect.s</FilenameWithoutPath>
