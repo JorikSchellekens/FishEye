@@ -310,10 +310,10 @@ I've tested particular values for contrast and brightness.
 | 22             | High contrast - should be more contrasted / starker |
 | -16            | Check negatives - should invert color with no effect on contrast |
 
-|        Original / 16        |           0           |           10           |           22           |           -16           |
-| :-------------------------: | :-------------------: | :--------------------: | :--------------------: | :---------------------: |
-| ![Original](./original.png) | ![0](./Contrast0.jpg) | ![0](./Contrast10.jpg) | ![0](./Contrast22.jpg) | ![0](./Contrast-16.jpg) |
-|           Worked            |        Worked         |         Worked         |         Worked         |         Worked          |
+|        Original / 16                |           0                   |           10                   |           22                   |           -16                   |
+| :-------------------------:         | :-------------------:         | :--------------------:         | :--------------------:         | :---------------------:         |
+| ![Original](resources/original.png) | ![0](resources/Contrast0.jpg) | ![0](resources/Contrast10.jpg) | ![0](resources/Contrast22.jpg) | ![0](resources/Contrast-16.jpg) |
+|           Worked                    |        Worked                 |         Worked                 |         Worked                 |         Worked                  |
 
 ##### Brightness test values:
 
@@ -327,7 +327,7 @@ I've tested particular values for contrast and brightness.
 
 |        Original / 0         |            60            |            -60            |            255            |            -255            |
 | :-------------------------: | :----------------------: | :-----------------------: | :-----------------------: | :------------------------: |
-| ![Original](./original.png) | ![0](./Brightness60.jpg) | ![0](./Brightness-60.jpg) | ![0](./Brightness255.jpg) | ![0](./Brightness-255.jpg) |
+| ![Original](resources/original.png) | ![0](resources/Brightness60.jpg) | ![0](resources/Brightness-60.jpg) | ![0](resources/Brightness255.jpg) | ![0](resources/Brightness-255.jpg) |
 |           Worked            |          Worked          |          Worked           |          Worked           |           Worked           |
 
 
@@ -409,7 +409,7 @@ I've tested particular values for the radius.
 
 |      Original / 0 - 1       |       2 - 5       |      16 - 13      |       14 - 29       |
 | :-------------------------: | :---------------: | :---------------: | :-----------------: |
-| ![Original](./original.png) | ![0](./Blur2.jpg) | ![0](./Blur6.jpg) | ![0](./Blur14.jpg)  |
+| ![Original](resources/original.png) | ![0](resources/Blur2.jpg) | ![0](resources/Blur6.jpg) | ![0](resources/Blur14.jpg)  |
 |           Worked            |      Worked       |      Worked       | Worked - Was Faster |
 
 ---
@@ -559,7 +559,7 @@ I've tested particular values for the radius.
 
 |      Original / 0 - 1       |         20         |          -20          |
 | :-------------------------: | :----------------: | :-------------------: |
-| ![Original](./original.png) | ![0](./Lens20.jpg) |  ![0](./Lens-20.jpg)  |
+| ![Original](resources/original.png) | ![0](resources/Lens20.jpg) |  ![0](resources/Lens-20.jpg)  |
 |           Worked            |       Worked       | Worked but with error |
 
 For the pincushion effect we get an error where the values of the transformed ``y`` and ``x`` are out of bounds. In the ``x`` axis it causes a type of wrapping, in the ``y`` this causes access to memory that is completely zeroed and hence fills in black.
