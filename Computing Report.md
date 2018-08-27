@@ -99,12 +99,12 @@ Uses ``AND`` to clear everything not under the mask and shifts the component bac
 ````assembly
 ; 	R0 = RGB
 ;	R1 = mask
-	AND R0, R0, R1													; value = RGB & mask
+	AND R0, R0, R1				; value = RGB & mask
 getMaskWhile		
-	LSRS R1, R1, #4													; while (mask >> 4 doesn't carry)
-	BCS endGetMaskWhile												; {
-	LSR R0, R0, #4													;	value >> 4
-	B getMaskWhile													; }
+	LSRS R1, R1, #4				; while (mask >> 4 doesn't carry)
+	BCS endGetMaskWhile			; {
+	LSR R0, R0, #4				;	value >> 4
+	B getMaskWhile			    ; }
 endGetMaskWhile
 ````
 
@@ -162,7 +162,7 @@ The functions are called for all valid combinations of (*row*, *col*) using the 
 ````assembly
 ;	R2 = wrapperAddress
 	MOV LR, PC
-	BX R2										;		execute(wrapperAddress)
+	BX R2					;		execute(wrapperAddress)
 ````
 
 ------
@@ -254,10 +254,10 @@ Handling the negative values was pretty simple. During the computation of the ab
 ;	R2 = color
 ;	R4 = contrast
 ;	R5 = brightness
-	MULS R2, R4, R2								; color *= contrast
-	ASR R2, R2, #4								; color /= 16
-	ADDMI R2, R2, #255							; invert color if contrast was negative
-	ADDS R2, R2, R5								; color += brightness
+	MULS R2, R4, R2				; color *= contrast
+	ASR R2, R2, #4				; color /= 16
+	ADDMI R2, R2, #255			; invert color if contrast was negative
+	ADDS R2, R2, R5				; color += brightness
 ````
 
 I use ``ASR`` to keep the sign of the number while dividing by 16 and if the result is negative it is subtracted from 255 thus inverting it.
